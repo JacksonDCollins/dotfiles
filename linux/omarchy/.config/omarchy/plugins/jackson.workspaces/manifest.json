@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "jackson.workspaces",
+  "name": "Monitor Workspaces",
+  "version": "1.0.0",
+  "author": "Jackson",
+  "description": "Workspace indicators scoped to each monitor",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Workspaces.qml"
+  },
+  "barWidget": {
+    "displayName": "Monitor Workspaces",
+    "description": "Workspace indicators scoped to each monitor",
+    "category": "Compositor",
+    "allowMultiple": false
+  },
+  "omarchy": {
+    "clonedFrom": "omarchy.workspaces"
+  }
+}

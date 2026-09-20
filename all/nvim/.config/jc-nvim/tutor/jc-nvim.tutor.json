@@ -1,0 +1,14 @@
+{
+  "expect": {
+    "56": "CHECK 1: <Space>sk",
+    "78": "CHECK 2: _",
+    "101": "CHECK 3: <Home>",
+    "124": "CHECK 4: <Space>r",
+    "145": "CHECK 5: <C-Right>",
+    "168": "CHECK 6: vif",
+    "192": "CHECK 7: grn",
+    "220": "CHECK 8: <C-y>",
+    "243": "CHECK 9: mf",
+    "266": "CHECK 10: <Space>gf"
+  }
+}

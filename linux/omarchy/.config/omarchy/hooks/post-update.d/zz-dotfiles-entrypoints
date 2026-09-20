@@ -1,0 +1,165 @@
+#!/bin/bash
+set -euo pipefail
+
+regular_file() {
+        [ -f "$1" ] && [ ! -L "$1" ]
+}
+
+BASHRC="$HOME/.bashrc"
+BASH_ENV='[[ -r "$HOME/.config/bash/dotfiles.env" ]] && source "$HOME/.config/bash/dotfiles.env"'
+BASH_RC='[[ -r "$HOME/.config/bash/dotfiles.rc" ]] && source "$HOME/.config/bash/dotfiles.rc"'
+if regular_file "$BASHRC" && [ -r "$HOME/.config/bash/dotfiles.env" ] && ! grep -qxF -- "$BASH_ENV" "$BASHRC"; then
+        temp=$(mktemp)
+        printf '%s\n%s\n%s\n' '# dotfiles:bash-env:begin' "$BASH_ENV" '# dotfiles:bash-env:end' >"$temp"
+        cat "$BASHRC" >>"$temp"
+        cat "$temp" >"$BASHRC"
+        rm -f "$temp"
+        printf 'Restored dotfiles environment hook in %s\n' "$BASHRC"
+fi
+if regular_file "$BASHRC" && [ -r "$HOME/.config/bash/dotfiles.rc" ] && ! grep -qxF -- "$BASH_RC" "$BASHRC"; then
+        printf '\n%s\n%s\n%s\n' '# dotfiles:bash-rc:begin' "$BASH_RC" '# dotfiles:bash-rc:end' >>"$BASHRC"
+        printf 'Restored dotfiles interactive hook in %s\n' "$BASHRC"
+fi
+
+FOOT_CONFIG="$HOME/.config/foot/foot.ini"
+FOOT_INCLUDE='include=~/.config/foot/dotfiles.ini'
+if regular_file "$FOOT_CONFIG" && [ -r "$HOME/.config/foot/dotfiles.ini" ] && ! grep -qxF -- "$FOOT_INCLUDE" "$FOOT_CONFIG"; then
+        printf '\n%s\n%s\n%s\n%s\n' '# dotfiles:foot:begin' '[main]' "$FOOT_INCLUDE" '# dotfiles:foot:end' >>"$FOOT_CONFIG"
+        printf 'Restored dotfiles include in %s\n' "$FOOT_CONFIG"
+fi
+
+configure_tmux_entrypoint() {
+        local config="$HOME/.config/tmux/tmux.conf"
+        local custom="$HOME/.config/tmux/dotfiles.conf"
+        local temp
+
+        [ -r "$custom" ] || return 0
+        if [ -L "$config" ]; then
+                printf 'Cannot configure tmux through symlink %s\n' "$config" >&2
+                return 1
+        fi
+        if [ -e "$config" ] && [ ! -f "$config" ]; then
+                printf 'Cannot replace non-regular tmux config %s\n' "$config" >&2
+                return 1
+        fi
+
+        mkdir -p -- "$(dirname -- "$config")"
+        temp=$(mktemp "$(dirname -- "$config")/.tmux.conf.XXXXXX")
+        printf '%s\n%s\n%s\n' \
+                '# Managed dotfiles entrypoint. Keep this as a regular file so package refreshes' \
+                '# cannot overwrite repository content through a symlink.' \
+                'source-file -q ~/.config/tmux/dotfiles.conf' >"$temp"
+        if [ -f "$config" ]; then
+                chmod --reference="$config" "$temp"
+        else
+                chmod 644 "$temp"
+        fi
+        if [ -f "$config" ] && cmp -s -- "$temp" "$config"; then
+                rm -f -- "$temp"
+                return 0
+        fi
+
+        mv -T -- "$temp" "$config"
+        printf 'Restored standalone tmux entrypoint in %s\n' "$config"
+        if command -v tmux >/dev/null 2>&1 && tmux list-sessions >/dev/null 2>&1; then
+                tmux source-file "$config" || printf 'Warning: restored %s but could not reload tmux\n' "$config" >&2
+        fi
+}
+
+configure_tmux_entrypoint
+
+HYPR_CONFIG="$HOME/.config/hypr/hyprland.lua"
+HYPR_SOURCE='require("hypr.dotfiles")'
+HYPR_TOGGLES='require("default.hypr.toggles")'
+if regular_file "$HYPR_CONFIG" && [ -r "$HOME/.config/hypr/dotfiles.lua" ] && ! grep -qxF -- "$HYPR_SOURCE" "$HYPR_CONFIG"; then
+        if grep -qxF -- "$HYPR_TOGGLES" "$HYPR_CONFIG"; then
+                temp=$(mktemp)
+                while IFS= read -r line || [ -n "$line" ]; do
+                        if [ "$line" = "$HYPR_TOGGLES" ]; then
+                                printf '%s\n%s\n%s\n' '-- dotfiles:hypr:begin' "$HYPR_SOURCE" '-- dotfiles:hypr:end' >>"$temp"
+                        fi
+                        printf '%s\n' "$line" >>"$temp"
+                done <"$HYPR_CONFIG"
+                cat "$temp" >"$HYPR_CONFIG"
+                rm -f "$temp"
+        else
+                printf '\n%s\n%s\n%s\n' '-- dotfiles:hypr:begin' "$HYPR_SOURCE" '-- dotfiles:hypr:end' >>"$HYPR_CONFIG"
+        fi
+        printf 'Restored dotfiles module in %s\n' "$HYPR_CONFIG"
+fi
+
+configure_workspace_widget() {
+        local config="$HOME/.config/omarchy/shell.json"
+        local default_config="${OMARCHY_PATH:-/usr/share/omarchy}/config/omarchy/shell.json"
+        local manifest="$HOME/.config/omarchy/plugins/jackson.workspaces/manifest.json"
+        local source temp
+
+        [ -r "$manifest" ] && [ -r "$default_config" ] || return 0
+        if [ -L "$config" ]; then
+                printf 'Cannot configure workspace widget through symlink %s\n' "$config" >&2
+                return 1
+        fi
+        if [ -e "$config" ]; then
+                if ! jq -e 'type == "object" and .version == 1' "$config" >/dev/null 2>&1; then
+                        printf 'Cannot configure workspace widget in invalid %s\n' "$config" >&2
+                        return 1
+                fi
+                source="$config"
+        else
+                if [ ! -r "$default_config" ]; then
+                        printf 'Cannot find default Omarchy shell config at %s\n' "$default_config" >&2
+                        return 1
+                fi
+                source="$default_config"
+        fi
+
+        mkdir -p -- "$(dirname -- "$config")"
+        temp=$(mktemp "$(dirname -- "$config")/.shell.json.XXXXXX")
+        if ! jq --ascii-output --arg stock omarchy.workspaces --arg custom jackson.workspaces '
+                def entry_id:
+                        if type == "object" then (.id // "" | tostring)
+                        elif type == "string" then .
+                        else ""
+                        end;
+                def workspace_entry:
+                        if type == "object" then .id = $custom else {id: $custom} end;
+                def replace_workspaces:
+                        map(if entry_id == $stock or entry_id == $custom then workspace_entry else . end);
+                .bar |= (if type == "object" then . else {} end)
+                | .bar.layout |= (if type == "object" then . else {} end)
+                | .bar.layout.left |= (if type == "array" then . else [] end)
+                | .bar.layout.center |= (if type == "array" then . else [] end)
+                | .bar.layout.right |= (if type == "array" then . else [] end)
+                | .bar.layout.left |= replace_workspaces
+                | .bar.layout.center |= replace_workspaces
+                | .bar.layout.right |= replace_workspaces
+                | ([.bar.layout.left[], .bar.layout.center[], .bar.layout.right[]]
+                        | map(entry_id) | index($custom)) as $workspace_index
+                | if $workspace_index == null then .bar.layout.left += [{id: $custom}] else . end
+        ' "$source" >"$temp"; then
+                rm -f -- "$temp"
+                return 1
+        fi
+        if [ -e "$config" ]; then
+                chmod --reference="$config" "$temp"
+        else
+                chmod 600 "$temp"
+        fi
+        if [ -f "$config" ] && cmp -s -- "$temp" "$config"; then
+                rm -f -- "$temp"
+        else
+                mv -T -- "$temp" "$config"
+                printf 'Restored monitor-scoped workspace widget in %s\n' "$config"
+        fi
+}
+
+configure_workspace_widget
+
+enable_usage_timer() {
+	command -v systemctl >/dev/null 2>&1 || return 0
+	systemctl --user daemon-reload >/dev/null 2>&1 || true
+	systemctl --user enable --now omarchy-agent-usage-openrouter.timer >/dev/null 2>&1 || true
+	systemctl --user enable --now omarchy-agent-usage-openrouter.path >/dev/null 2>&1 || true
+}
+
+enable_usage_timer

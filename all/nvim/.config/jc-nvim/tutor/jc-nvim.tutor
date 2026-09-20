@@ -1,0 +1,287 @@
+# YOUR NEOVIM: TEN SHORT LESSONS *jc-start*
+
+Learn by doing, then recall the keys without looking. About 30 minutes;
+split it into several five-minute sessions if you prefer.
+
+START: run :Keycourse in a new jc-nvim session. It opens this guide on
+the left and a temporary practice.lua on the right, in a separate tab.
+Only edit that temporary project. :pwd shows its location. No real project
+is copied, committed, or pushed. Existing tabs keep their working directory.
+
+This guide is an editable, non-writable Tutor buffer: your answers do not
+change the installed lesson. :Keycourse returns to its tab; :Tutor
+jc-nvim-reference opens the [complete key reference](@tutor:jc-nvim-reference).
+Start a new Neovim session for a completely fresh workbook.
+
+NOTATION: <Space> is your leader. <C-x> means hold Ctrl and press x;
+<M-x> means Alt+x. grn means three consecutive keys, not a chord.
+Uppercase matters. N = Normal, I = Insert, V = Visual, O = pending operator.
+Type leader sequences promptly: your mapping timeout is 300 ms.
+
+PRACTICE: use Ctrl+Right to enter the code window and Ctrl+Left to return.
+The tasks are self-checked. Each CHECK line is an automatic recall quiz:
+place the cursor on its final ?, type $cl, type the literal answer, then Esc.
+Its gutter sign changes when correct. Read a lesson's answer only if stuck.
+In this Tutor buffer Enter follows links and >> executes the current line;
+do editing/indentation drills in practice.lua, NOT on instruction lines.
+
+Choose a lesson with Enter on its link:
+- [1. Move and discover](*jc-move*)
+- [2. Edit without losing your yank](*jc-edit*)
+- [3. Find files and retrace your steps](*jc-files*)
+- [4. Search and replace](*jc-search*)
+- [5. Splits and bookmarks](*jc-windows*)
+- [6. Select code and jump with labels](*jc-code*)
+- [7. Understand and refactor code](*jc-lsp*)
+- [8. Complete, wrap, and use AI](*jc-completion*)
+- [9. Manage files with netrw](*jc-netrw*)
+- [10. Git, maintenance, and a final challenge](*jc-git*)
+
+## 1. MOVE AND DISCOVER *jc-move*
+
+In the code window, press Esc. Use h/j/k/l or arrows, w/b for words,
+0/$ for line ends, gg/G for file ends, and 5j to move five lines.
+i enters Insert; Esc or Ctrl+c returns to Normal in your config.
+v selects characters, V selects lines, Ctrl+v selects a block.
+u undoes; Ctrl+r redoes; . repeats a repeatable edit. :w saves.
+
+TRY: open the keymap picker with <Space>sk, search for "history", then
+Ctrl+c to close. Open <Space>sh, search for "text-objects", and Enter.
+Close just that help window with :q. These are your memory aids.
+
+Normal PageDown/PageUp scroll half a page and center, not a full page.
+Your screen shows relative line numbers to help with counted motions.
+
+RECALL: which personalized shortcut lists keybindings? [Answer](*jc-answers*)
+CHECK 1: ?
+
+## 2. EDIT WITHOUT LOSING YOUR YANK *jc-edit*
+
+On the WORDS comment, put the cursor on red and type yiw (yank a word).
+Move to green, type viw, then p. EXPECT: red red blue. Undo once.
+Now use ciw to change green to gold. Your previous yank is still red.
+
+Your d, D, c, C discard old text into the black-hole register (_); deletion is
+not cutting. Yank explicitly before moving text. D/C in Visual mode can
+affect whole lines, not just highlighted characters. u can undo mistakes.
+
+TRY: V-select the three MOVE comments, Shift+Up then Shift+Down.
+Press > then <; the selection stays active. Esc to finish.
+Normal > or < shifts the current line immediately; >> would shift twice
+in a code buffer. J joins two lines while preserving cursor position;
+try it on the JOIN comment, then undo. Counts on this custom J are lost.
+
+CAUTION: Visual Shift+Left/Right are also configured, but can delete the
+selection at line boundaries. Do not rely on them; undo immediately if used.
+
+RECALL: which register do your d/c mappings use? [Answer](*jc-answers*)
+CHECK 2: ?
+
+## 3. FIND FILES AND RETRACE YOUR STEPS *jc-files*
+
+TRY: <Space>sf, type "other", Enter. Then <Space><Space> and choose
+practice.lua. Home returns to other.lua; End returns to practice.lua.
+These keys follow FILE history, not line boundaries or cursor jumps.
+They support counts and skip special/deleted buffers. Do not go farther
+back into your real files during practice.
+
+In Telescope: Ctrl+n/p or arrows select; Enter opens; Ctrl+c closes.
+Esc leaves picker Insert mode, then another Esc closes it.
+Ctrl+x/v/t opens in a horizontal split/vertical split/tab.
+Tab/Shift+Tab toggle multi-selection; Ctrl+u/d scroll the preview.
+Ctrl+/ in Insert, or ? in picker Normal mode, shows its keys.
+Ctrl+j is disabled; Ctrl+k scrolls the preview sideways, not up a result.
+
+Other launchers: <Space>s. recent files; <Space>sp tracked Git files;
+<Space>sc your config; <Space>sr resume; <Space>st list pickers;
+<Space>sn notifications. Inspect real config read-only if you open it.
+Git files may be empty until you stage a sandbox file in lesson 10.
+
+RECALL: which key goes to the previous FILE? [Answer](*jc-answers*)
+CHECK 3: ?
+
+## 4. SEARCH AND REPLACE *jc-search*
+
+TRY in practice.lua: /banana then Enter. n goes to the next match,
+N goes back; both center and open folds. Lowercase searches ignore case;
+adding uppercase makes a search case-sensitive. Esc clears highlighting.
+
+Use <Space>/ for fuzzy search in this buffer, <Space>sw for the current
+word across files, <Space>sg for project live grep, and <Space>s/ for
+live grep in open files. Search "greet". Close the picker with Ctrl+c.
+
+Put the cursor on banana and press <Space>r. The command line is ready
+for the REPLACEMENT: type mango and Enter. EXPECT: all three whole-word
+banana occurrences in this file become mango. Undo after inspecting.
+This is case-sensitive textual replacement, not a language-aware rename.
+Esc cancels the prompt. An empty replacement deletes the matching words.
+
+Telescope Ctrl+q sends all results to QUICKFIX; Alt+q sends selections.
+Use :cnext/:cprevious there. Your <Space>n/p keys use a LOCATION LIST
+instead; they do not navigate quickfix. Lesson 7 shows their intended use.
+
+RECALL: which shortcut prefills whole-word replacement? [Answer](*jc-answers*)
+CHECK 4: ?
+
+## 5. SPLITS AND BOOKMARKS *jc-windows*
+
+TRY in the code window: :vsplit other.lua, then Ctrl+Left/Ctrl+Right.
+Use :q to close ONLY the extra split. :split opens a horizontal split.
+Ctrl+Up/Down moves vertically; Ctrl+Backslash returns to the previous
+window/pane. At an editor edge these can enter an adjacent tmux pane.
+These mappings also work in Insert, Visual, and terminal-input modes.
+
+CAUTION: Ctrl+Backslash also shadows the usual terminal-mode escape
+Ctrl+Backslash Ctrl+n. Do not open a Neovim terminal for this course.
+The reference explains this existing limitation; this lesson changes no keys.
+
+OPTIONAL HARPOON: with the temporary project active, use <Space>ma on
+practice.lua and other.lua. <Space>mf opens the saved-file menu;
+Enter opens its row, q/Esc closes. Alt+1 through Alt+9 selects list slots.
+The list persists. Remove these temporary entries in the menu afterward
+with dd, then q. To reorder: yy BEFORE dd, then P, because d discards text.
+
+RECALL: which chord moves into the right split? [Answer](*jc-answers*)
+CHECK 5: ?
+
+## 6. SELECT CODE AND JUMP WITH LABELS *jc-code*
+
+In practice.lua, move inside greet. Type vif, inspect the selected function
+body, then Esc. Compare vaf (whole function, linewise). Try via/vaa on
+a parameter. as selects local scope where the parser's query supports it.
+Combine objects with y/d/c: e.g. yif or cia. Only mutate the sandbox.
+
+TRY: ]f and [f move to next/previous function starts. Open model.py and
+try ]c/[c plus vic/vac. Your outer-class selection is BLOCKWISE.
+Parser/query support varies; skip unavailable objects instead of guessing.
+These structure movements do not add entries to the jumplist.
+
+TRY: zk, type a few letters, then a displayed label to jump. Esc cancels.
+zt selects syntax ranges. In Normal/Visual, Ctrl+Space starts incremental
+range selection; press it again to expand, Backspace to shrink, Esc to exit.
+f/F/t/T and ;/, are also Flash-enhanced character jumps/repeats.
+Advanced: yzr, choose a label, then iw yanks a remote word and returns;
+yzs searches a syntax range. zr/zs apply in Visual/operator-pending modes.
+With a parser, try za to toggle a fold; zo/zc open/close; zR/zM all.
+
+RECALL: select the inside of a function in Visual mode. [Answer](*jc-answers*)
+CHECK 6: ?
+
+## 7. UNDERSTAND AND REFACTOR CODE *jc-lsp*
+
+Use the Lua files. Wait for a language server; :checkhealth vim.lsp can
+diagnose missing support. No server? Read this lesson and skip its drills.
+TRY: on greet in other.lua, grd opens its definition; K shows hover.
+grr lists references; gri implementations; grt type definitions;
+grD declarations. Not every symbol/server supports every operation.
+gO lists document symbols; gW searches workspace symbols.
+
+In this DISPOSABLE project, grn can rename greet to welcome. Visit each
+changed sandbox file and :w to save. Never :wall: it can save real buffers.
+gra requests a code action (Normal or Visual). <Space>f formats this buffer;
+saving normally formats configured languages too. <Space>th toggles buffer
+inlay hints when supported. Refactors can change multiple files; stay here.
+
+TRY: add a typo such as missing_course_name() to a Lua file. If diagnostics
+appear, ]d/[d moves next/previous; ]D/[D last/first; Ctrl+w d opens details.
+<Space>sd searches diagnostics. <Space>q opens/closes this buffer's
+diagnostic location list; <Space>n/p moves next/previous and centers.
+Remove the typo. Empty diagnostics are fine; they are not a failed lesson.
+
+RECALL: language-aware rename, rather than text replacement? [Answer](*jc-answers*)
+CHECK 7: ?
+
+## 8. COMPLETE, WRAP, AND USE AI *jc-completion*
+
+In practice.lua Insert mode, type part of a known name. Ctrl+Space opens
+Blink completion; Ctrl+n/p or arrows choose; Ctrl+y ACCEPTS.
+Ctrl+e cancels. Enter inserts a newline; Tab is NOT completion accept.
+Ctrl+b/f scroll docs (Ctrl+f has an AI exception below); Ctrl+k toggles
+signature help. In the : command line, Tab/Shift+Tab cycles completion.
+
+TRY: accept a snippet such as a function snippet. Tab advances a placeholder,
+Shift+Tab goes back. Otherwise Tab tries a Sidekick edit, then tabout or
+ordinary Tab. Tabout can cross closing delimiters when a parser is available.
+Autopairs inserts matching quotes/brackets; Backspace can remove an empty
+pair, and Enter handles a pair-aware newline.
+
+TRY in Normal: on a plain word, siw) wraps it in parentheses; undo.
+siw( adds interior spaces instead. s takes a motion then a delimiter.
+In Insert, Ctrl+l then ) inserts a pair at the cursor; Ctrl+l Ctrl+l
+then ) puts the pair on separate lines. ds/cs and Visual S are NOT enabled.
+
+OPTIONAL AI (needs Copilot access/network): with visible ghost text,
+Ctrl+f accepts all, Ctrl+d a line, Ctrl+s a word, Ctrl+g cycles suggestions.
+Blink hides ghost text while its menu is open. Normal Ctrl+i jumps/applies
+Sidekick's next edit; otherwise it is native jump-forward. Esc clears NES.
+There are no configured Sidekick CLI launcher shortcuts. Skip AI if offline.
+
+RECALL: the completion-menu accept chord? [Answer](*jc-answers*)
+CHECK 8: ?
+
+## 9. MANAGE FILES WITH NETRW *jc-netrw*
+
+From practice.lua press <Space>e: netrw opens its directory and focuses
+the filename. Enter opens a file/directory; - goes to its parent;
+<Space>e toggles back. Ctrl+c closes the netrw buffer.
+
+TRY ONLY IN THE TEMP PROJECT: :edit files, then N and enter draft.txt.
+N refuses to overwrite an existing file and can create parent directories.
+Move to draft.txt; R renames it, D deletes it (read the prompts).
+Use d for a directory. Never practice these on your actual config files.
+
+Literal mf marks/unmarks a file; mF clears current-listing marks.
+Your Tab/Shift+Tab mappings INTEND to do that but are nonrecursive:
+they currently set ordinary Vim marks instead. Use mf/mF, not Tab.
+<Space>r REFRESHES here; it is not word replacement. Ctrl+h/l follow
+the jumplist, while u/U follows netrw directory history.
+o/v/t/p opens in split/vsplit/tab/preview; i cycles list style,
+I toggles banner, gh toggles dotfiles, s changes sorting, qf shows info.
+Use long listing for these exercises; wider layouts have plugin limitations.
+
+RECALL: working netrw file-mark toggle? [Answer](*jc-answers*)
+CHECK 9: ?
+
+## 10. GIT, MAINTENANCE, AND A FINAL CHALLENGE *jc-git*
+
+The launcher initializes a temporary Git repo when Git is installed, without
+commits or remotes. In a practice file press <Space>gf for Fugitive status.
+Choose an untracked file, s stages it; find it under Staged, then = shows
+its diff, u unstages it, gq closes. Here s is STAGE; g? shows local keys.
+Git actions are real: do not use X (discard), amend, reset, or push as drills.
+
+REFERENCE ONLY: <Space>R restarts Neovim; <Space>ps updates plugins.
+Do not run either just to pass a lesson. :Mason manages external tools;
+:ConformInfo explains formatting; :checkhealth reports setup issues.
+Native gcc/gc{motion}/Visual gc comments code; gqq may invoke LSP format,
+whereas gw reflows text without formatexpr. No custom Gitsigns hunk keys
+are configured. Consult the reference for optional plugin-local controls.
+
+FINAL CHALLENGE, without looking back: find other.lua, open its definition,
+return through file history, wrap one word, find a project-wide string,
+open a split, accept a completion, and create a file in the sandbox.
+Skip server/AI-dependent parts if unavailable. Repeat tomorrow from memory.
+
+RECALL: open Git status from a code buffer. [Answer](*jc-answers*)
+CHECK 10: ?
+
+FINISH: remove any temporary Harpoon marks, then :tabclose! closes the
+course tab (or quit this dedicated Neovim session). The practice files are
+temporary; don't keep work there. Quizzes do not persist to the source file.
+You can always reopen the [full reference](@tutor:jc-nvim-reference).
+
+## ANSWERS: TRY RECALL FIRST *jc-answers*
+
+Type the notation literally into CHECK lines, including angle brackets:
+1. <Space>sk
+2. _
+3. <Home>
+4. <Space>r
+5. <C-Right>
+6. vif
+7. grn
+8. <C-y>
+9. mf
+10. <Space>gf
+
+Use Ctrl+o to return from an answer link, or [choose a lesson](*jc-start*).

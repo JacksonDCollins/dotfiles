@@ -1,0 +1,268 @@
+# jc-nvim Key Reference *jc-ref*
+[Course](@tutor:jc-nvim) | [Safety](*jc-ref-safety*) | [Sources](*jc-ref-sources*)
+
+Scope: all personalized mappings and common effective defaults, not every
+native Vim or optional plugin command. This is a reference, not a drill sheet.
+Leader and localleader are Space. `Space sf` means Space, s, f in sequence.
+Modes: n Normal; i Insert; x Visual; s Select; o operator-pending; c command-line;
+t terminal-input; v means both Visual and Select for shared custom mappings.
+`<C-...>` is Ctrl; `<S-...>` Shift; `<M-...>` Alt/Meta. Case matters.
+Buffer-local UI mappings override globals. Availability depends on filetype/server.
+In native Tutor, Enter/double-click follow links; do not use its >> command injection on reference text.
+
+## Safety and Known Limits *jc-ref-safety*
+- Visual Shift-Left/Right can DELETE selected text at line boundaries; avoid edges.
+- Netrw Tab/Shift-Tab set Vim marks f/F, not file marks: nonrecursive RHS mf/mF.
+- Terminal `<C-\>` navigates away, intercepting native `<C-\><C-n>` terminal escape.
+- Default navigator `<C-h/j/k/l>` mappings are DISABLED; use Ctrl-Arrows instead.
+- Surround `ds`, `cs`, Visual `S`, and other defaults are disabled; see [surround](*jc-ref-surround*).
+- Git mutations, Mason changes, plugin updates and history rewrites are reference-only, never drills.
+- AI, server, filesystem and Git exercises require suitable buffers or disposable projects.
+- Terminal protocols can alias Tab/Ctrl-I or intercept Ctrl-S/Alt keys; test actual input.
+
+## Core Editing and Navigation *jc-ref-core*
+- n `Space R`: restart Neovim. n `Space ps`: `vim.pack.update()`; reference-only.
+- n `Space e`: Explore current file's directory and focus its entry; netrw uses Rexplore.
+- n `<Home>` / `<End>`: previous/next tracked file, centered; counts work, e.g. `3<Home>`.
+- File history tracks named, listed ordinary buffers, not cursor positions or special UIs.
+- v `<S-Up>` / `<S-Down>`: move selected rows up/down, reindent and reselect.
+- v `<S-Left>` / `<S-Right>`: characterwise region move using register s; unsafe at edges.
+- n `>` / `<`: indent/unindent current line; NOT the native motion-taking operators.
+- v `>` / `<`: indent/unindent and retain selection.
+- n `J`: join two lines and restore cursor via mark z; `3J` still joins only two lines.
+- n/v `<PageDown>` / `<PageUp>`: half-page down/up, then center.
+- n `n` / `N`: repeat search forward/backward relative to search direction, center and unfold.
+- c `<CR>`: accept `/` or `?` search, center and unfold; other commands get ordinary Enter.
+- n `<Esc>`: clear search highlighting; also clears a pending Sidekick next edit.
+- n `Space r`: whole-file, whole-word, case-sensitive replacement prompt for cursor word.
+- The replacement starts EMPTY: accepting immediately deletes matches; netrw overrides this key.
+- v `p`: black-hole delete selection then P; preserve the previous yank for repeated replacement.
+- n/v `d`, `D`, `c`, `C`: delete/change through black-hole register, preserving previous yank.
+- n `D`/`C`: to line end; character/line Visual D/C affect whole lines; block Visual D/C extend each row to EOL.
+- i `<C-c>`: Escape, including normal InsertLeave behavior.
+- n `Space n` / `Space p`: next/previous LOCATION-list item and center, not quickfix.
+- n `Space q`: close open location list, or populate/open current-buffer diagnostics there.
+- n/v/i/t `<C-Left/Down/Up/Right>`: neighboring split or tmux pane in that direction.
+- n/v/i/t `<C-\>`: previous split/pane. Do not use it as terminal escape in this setup.
+- Native basics: `u` undo, `<C-r>` redo, `.` repeat; black-hole deletion means `dd` does not copy.
+- Native folds: `zo` open, `zc` close, `za` toggle, `zR` open all, `zM` close all.
+- Native comments: n `gcc` line, `gc{motion}` region; x `gc` selection. Not commentary.
+- Help: [registers](registers), [location lists](location-list), [folds](fold-commands), [comments](gc).
+
+## LSP and Runtime Defaults *jc-ref-lsp*
+- Attached-buffer n `grn`: rename; n/x `gra`: code action.
+- Attached-buffer n `grr`: Telescope references; `gri`: implementations.
+- Attached-buffer n `grd`: definitions, NOT `gd`; `grD`: declaration.
+- Attached-buffer n `grt`: type definitions; `gO`: document symbols.
+- Attached-buffer n `gW`: dynamic workspace symbols; picker i `<C-Space>` fuzzy-refines results.
+- Attached-buffer n `Space th`: toggle this buffer's inlay hints, only when supported.
+- Runtime n `K`: hover when available; `grx`: codelens action when supported.
+- Runtime n `]d` / `[d`: next/previous diagnostic; `]D` / `[D`: last/first diagnostic.
+- Runtime n `<C-w>d` or `<C-w><C-d>`: diagnostic float.
+- Runtime i/s `<C-s>`: signature help; Copilot overrides INSERT Ctrl-S with word acceptance.
+- Runtime x/o `an` / `in`: parent/child syntax-node selection, with parser or LSP selection-range support.
+- Server operations need an attached supporting server; plain Tutor buffers may have none.
+- n `Space f`: Conform asynchronous WHOLE-buffer format, with LSP fallback; not a range key.
+- Saving autoformats with a 500 ms timeout/LSP fallback, except C/C++ skip format-on-save.
+- Formatters: stylua, phpcbf, gofumpt + goimports, rustfmt, shfmt, black, prettierd by filetype.
+- Help: [LSP defaults](lsp-defaults), [diagnostics](diagnostic-defaults), [formatting](conform).
+
+## Telescope Launchers *jc-ref-search*
+All are Normal mode; picker controls are [below](*jc-ref-picker*).
+- `Space sh`: help tags; `Space sk`: keymaps.
+- `Space sf`: files; `Space sp`: Git-tracked project files.
+- `Space sn`: Fidget notifications; `Space st`: Telescope builtin picker list.
+- `Space sw`: grep cursor word; `Space sg`: live grep.
+- `Space sd`: diagnostics; `Space sr`: resume last picker.
+- `Space s.`: recent files; `Space Space`: buffers.
+- `Space /`: fuzzy search current buffer, dropdown without preview.
+- `Space s/`: live grep restricted to open files.
+- `Space sc`: files under this Neovim configuration directory.
+- When startup cwd basename is dotfiles, file/grep pickers include hidden files.
+- Live grep/word grep require rg; local search does not need an online service.
+- Telescope also handles vim.ui.select choices, including code-action/prompt menus.
+
+## Telescope Picker Controls *jc-ref-picker*
+- i type: filter; i `<Esc>`: Normal mode; n `<Esc>` or i `<C-c>`: close.
+- i `<C-n>`/`<C-p>`, i/n `<Down>`/`<Up>`, n `j`/`k`: next/previous result.
+- n `H`/`M`/`L`: top/middle/bottom; `gg`/`G`: first/last result.
+- i/n `<CR>`: choose; `<C-x>` split, `<C-v>` vsplit, `<C-t>` tab, unless picker overrides.
+- i/n `<Tab>`/`<S-Tab>`: toggle multi-selection and move to worse/better-ranked result.
+- i/n `<C-u>`/`<C-d>`: preview up/down; `<C-f>`/`<C-k>`: preview left/right.
+- i/n `<PageUp>`/`<PageDown>`: results up/down; `<M-f>`/`<M-k>`: results left/right.
+- i/n `<C-q>`: ALL results to quickfix, replacing list; `<M-q>`: multi-selected results only.
+- i `<C-/>` or `<C-_>`, n `?`: toggle key help; no separate which-key plugin needed.
+- i `<C-l>`: prefilter-tag completion, only supported by some pickers; not surround.
+- i `<C-w>`: delete preceding word; `<C-j>`: NO-OP, not next result.
+- i `<C-r><C-w/a/f/l>`: insert original word/WORD/filename/line respectively.
+- i/n left click selects; double-left click performs default action.
+- Buffer picker i/n `<M-d>`: delete buffer(s); cached-pickers i/n `<C-x>`: remove cached picker.
+- Command/search history i/n `<C-e>`: edit entry; registers `<CR>` paste, `<C-e>` edit.
+- Quickfix-history i/n `<C-q>`: activate/open chosen historical list.
+- Live-grep i `<C-Space>`: fuzzy-refine collected results; not Flash/Blink here.
+- Fidget `<CR>` echoes chosen notification and closes; `<C-x/v/t>` only close.
+- vim.ui.select `<CR>` chooses; closing cancels. Blink normally stays disabled in prompt buffers.
+- No configured history-cycle or previewer-cycle shortcuts. [Picker help](telescope.mappings).
+
+## Harpoon Files *jc-ref-harpoon*
+- n `Space ma`: add current file; `Space mf`: toggle native quick menu.
+- n `<M-1>` through `<M-9>`: select corresponding file in current cwd's Harpoon list.
+- Quick-menu n `<CR>`: resolve edited list, close and open current row.
+- Quick-menu n `q`/`<Esc>`: save/close; `:w` saves/closes; leaving buffer also saves/closes.
+- Menu is editable: `j/k`, `gg/G`, `{count}G` navigate; edit/delete rows to change bookmarks.
+- Global black-hole `d` applies: menu `dd` deletes a bookmark WITHOUT copying it.
+- To reorder, use `yy`, then `dd`, move, then `P`; or use [:move](:move). NOT `dd` then `p`.
+- Direct menu digits 1-9 are NOT enabled; no native-menu split/vsplit shortcuts configured.
+- Optional Telescope Harpoon extension is separate, not explicitly loaded by this config.
+- Its i/n `<C-d>` prompts to delete current/selected marks: y + Enter confirms.
+- Its i/n `<C-p>` moves item to list index +1; `<C-n>` to index -1, NOT cursor navigation.
+- Filtered/sorted indices make that reorder unreliable; use arrows to navigate this picker.
+- Native menu saves on toggle and syncs to disk; current-file highlight adds no keys.
+
+## Netrw Files *jc-ref-netrw*
+All keys below are Normal mode in a netrw buffer. [Netrw help](netrw-quickmap).
+- `Space e`: Rexplore toggle; `<C-c>`: delete/close browser buffer.
+- `<C-h>`: native jumplist back then center; `<C-l>`: forward then center, bypassing Sidekick.
+- `Space r`: refresh via e!, NOT global word replacement.
+- `N`: filename prompt, create missing parent directories; refuses to overwrite existing files.
+- BROKEN intended shortcuts: `<Tab>` -> literal mf, `<S-Tab>` -> literal mF, nonrecursively.
+- They set Vim marks f/F. Use literal `mf` and `mF` for netrw file marking/unmarking.
+- The custom FileType hook binds these maps; icons/parsing target thin/long/tree listings, not wide style.
+- `<CR>`: enter directory/open file; `-`: parent directory.
+- `o`/`v`/`t`: horizontal split/vsplit/tab; `p`: preview; `P`: open in previous window.
+- `u`/`U`: previous/next directory history, NOT the editor jumplist.
+- `%`: new file; `d`: new directory; `R`: rename; `D`/`<Del>`: delete (filesystem changes).
+- `mf`: toggle file mark; `mF`: clear listing marks; `mu`: clear all file marks.
+- `mt`: set target directory; `mc`/`mm`: copy/move marked files there (filesystem changes).
+- `mr`: mark by pattern; `me`: edit marked files; `md`: diff marked files.
+- `mb`/`gb`/`qb`: bookmark/go to previous bookmark/list bookmarks and history.
+- `gh`: toggle dotfiles; `a`: cycle hiding rules; `i`: listing style; `I`: banner.
+- `s`: sorting criterion, NOT surround; `r`: reverse sorting; `S`: sort sequence.
+- `cd`: change cwd; `gn`: tree root; `qf`: file information; `<F1>`: help.
+- `x`: associated external program; `X`: execute filename. Reference-only, not navigation drills.
+- Default Ctrl-H hide-list editing and Ctrl-L refresh are replaced by custom history keys.
+
+## Blink Completion *jc-ref-blink*
+Default preset, NOT super-tab/enter. [Keymap help](blink-cmp-config-keymap).
+- i `<C-Space>`: show completion, then show/hide documentation as applicable.
+- i `<C-y>`: select/accept current or first completion; this is the completion accept key.
+- i `<C-e>`: CANCEL completion, undo insertion preview; then fallback if not handled.
+- i `<Up>`/`<Down>`: previous/next completion, else fallback.
+- i `<C-p>`/`<C-n>`: previous/next, else other mappings ONLY, not native completion.
+- i `<C-b>`: documentation up four lines, else fallback.
+- i `<C-f>`: accept visible Copilot suggestion, else documentation down, else fallback.
+- i `<Tab>`: next snippet placeholder -> Sidekick next edit jump/apply -> tabout/native fallback.
+- i `<S-Tab>`: previous snippet placeholder -> tabout fallback.
+- i `<C-k>`: show/hide signature help, else fallback.
+- s `<Tab>`/`<S-Tab>`: snippet forward/backward; Tab also tries Sidekick; Select-mode fallback.
+- s `<C-k>`: signature; s `<C-f>`: Copilot callback then fallback, NO documentation scrolling.
+- Insert Enter and Tab do NOT accept Blink completions; Enter is autopairs-aware newline.
+- Preselection/insertion preview default on; documentation auto-opens after 200 ms.
+- Sources: LSP, paths, snippets, buffer, LazyDev; Copilot is separate ghost text, not a source.
+- c `<Tab>`: show/insert first or accept sole item, then next; `<S-Tab>` starts last/goes previous.
+- c `<C-n>`/`<Right>` and `<C-p>`/`<Left>`: next/previous completion, else native fallback.
+- c `<C-Space>` show; `<C-y>` select/accept; `<C-e>` cancel; `<End>` hide then native End.
+- Command-line auto-show is enabled; Insert Ctrl-F/Tab overrides do not apply there.
+- Blink wraps mappings on InsertEnter; prompt buffers/macros disable it; terminal completion is off.
+
+## Copilot and Next Edits *jc-ref-ai*
+- Copilot-attached i `<C-d>`: accept suggestion line; `<C-s>`: accept word, else previous/native key.
+- Copilot-attached i `<C-g>`: next/request suggestion, NO fallback to native Ctrl-G prefix.
+- i `<C-f>`: full visible suggestion acceptance through Blink, before documentation scrolling.
+- Suggestions auto-trigger; accept keys do not request suggestions when none are visible.
+- Blink menu open hides Copilot ghost text; close unhides it. Ctrl-F then normally scrolls docs.
+- No standalone accept/previous/dismiss/toggle key; Copilot panel and its Alt-Enter key are disabled.
+- Copilot's own NES is off, but Sidekick NES is ON; n `<C-i>` jumps to/applies the next edit.
+- n `<C-i>` falls back to native forward jumplist if no edit; Sidekick adds no jumplist entry.
+- `<Esc>` clears NES; entering Insert or changing text in Insert also clears it.
+- Tutor/special buffers need not support AI; Copilot excludes Markdown/YAML/help/commit filetypes.
+- Copilot requires network, authentication/access, attached server, curl and Node.js 22+.
+- Sidekick NES needs Copilot inline-edit server support; CLI tools are separate optional services.
+- Help: [Copilot](copilot.txt), [Sidekick](sidekick.nvim.txt). No unconfigured CLI launchers listed.
+
+## Surround Inputs *jc-ref-surround*
+- n `s{motion}{delimiter}`: add surround, e.g. `siw)`; replaces native substitute-character s.
+- i `<C-l>{delimiter}`: pair around cursor; `<C-l><C-l>{delimiter}`: delimiters on new lines.
+- Double Ctrl-L is NOT an existing-whole-line surround; single Ctrl-L can wait for its prefix.
+- Disabled n keys: `ys`, `yss`, `yS`, `ySS`, `ds`, `cs`, `cS`; no delete/change-surround shortcut.
+- Disabled i keys: `<C-g>s`, `<C-g>S`; disabled x keys: `S`, `gS`.
+- `(`, `[`, `{`, `<`: paired delimiters with interior spaces; `)`, `]`, `}`, `>`: without spaces.
+- Single quote, double quote, backtick: matching quotes; `a/b/B/r` alias `>/)/}/]` respectively.
+- `t`/`T`: prompt for HTML tag/attributes; `f`: function-name prompt; `i`: left/right delimiter prompts.
+- Enter accepts prompts; Esc/Ctrl-C cancel. Other printable delimiters repeat on both sides.
+- q/s search aliases are not generic add aliases. [Surround help](nvim-surround.txt).
+~~~
+siw)    surround current word with tight parentheses
+siw(    surround current word with spaced parentheses
+~~~
+
+## Syntax Textobjects *jc-ref-objects*
+- x/o `af`/`if`: outer/inner function; `ac`/`ic`: class; `aa`/`ia`: parameter.
+- x/o `as`: local scope from @local.scope in the locals query group.
+- n/x/o `[f`/`]f`: previous/next function START; `[c`/`]c`: previous/next class START.
+- Lookahead is on; outer selections include surrounding whitespace.
+- af is LINEWISE, ac is BLOCKWISE, aa is characterwise; these choices affect operators.
+- Motions do not add jumplist entries. No end-motion/swap/repeat mappings configured.
+- Parser and matching language queries required; folds start open at foldlevel 99.
+- Help: [textobjects](nvim-treesitter-textobjects), [native nodes](treesitter).
+
+## Flash Inputs *jc-ref-flash*
+- n/x/o `zk`: text jump; `zt`: Treesitter range; `<C-Space>`: incremental Treesitter selection.
+- x/o `zr`: remote motion/operation and restore location; `zs`: Treesitter search/range.
+- n/x/o `f/F/t/T` and `;/,`: Flash-enhanced character motions/repeats, multiline by default.
+- `/` and `?` also show Flash labels; no configured command-line toggle key.
+- General labels: arstgmneioqwfpbjluyzxcdvkh, plus uppercase labels when needed.
+- Treesitter zt/Ctrl-Space labels instead use abcdefghijklmnopqrstuvwxyz.
+- Inside UI: type pattern then displayed label; Enter chooses current target; Esc cancels.
+- Search Backspace removes pattern text; Treesitter `;` expands, `,` contracts.
+- Incremental selection additionally uses Ctrl-Space to expand, Backspace to contract.
+- Character UI `;`/`,` repeat original/opposite direction; lower/uppercase motion keys also repeat.
+- Character labels exclude hjkliardc and are suppressed for counts/macros.
+- n zt no longer means scroll-to-top; n zk no longer means previous spelling error.
+- Only Blink menu/documentation/signature filetypes are explicitly excluded. [Flash help](flash.nvim.txt).
+
+## Autopairs and Tabout *jc-ref-pairs*
+- i opening parentheses/brackets/braces/quotes/backticks insert matching closers when context permits.
+- i existing closer skips over it; Backspace deletes empty pair; Enter adds pair-aware newline.
+- Defaults also handle markup comments, fences, triple quotes and newlines between markup tags.
+- Treesitter checking is on; autopairs is disabled in TelescopePrompt, macros and Replace mode.
+- No autopairs Ctrl-H/Ctrl-W or fast-wrap key is enabled.
+- After Blink fallback, Tab moves out through quotes/backticks or ()[]{}; otherwise ordinary Tab.
+- Shift-Tab moves backward; if impossible it does NOTHING, not outdent. Parser support required.
+
+## Git Reference Only *jc-ref-git*
+- n `Space gf`: Fugitive status. [Status/action help](fugitive-maps). Use disposable repositories.
+- Global n `y<C-g>`: yank Fugitive-object path; c `<C-r><C-g>`: insert escaped object path.
+- Status n/x `s`/`u`/`-`: stage/unstage/toggle; n `U`: unstage all; n/x `=`/`>`/`<`: toggle/show/hide diff.
+- Status n/x `X` discards changes; `2X`/`3X` ours/theirs. These are NOT text-editor undo operations.
+- Status n `<CR>`/`o`/`gO`/`O`/`1p`: open/split/vsplit/tab/preview; `gq` closes; `g?`/`<F1>` help.
+- n `dd`, `dh`/`ds`, `dv`: default/horizontal/vertical diff; `dq` closes other diffs; n/x `I`/`P` patch.
+- n/x/o `(`/`)`: items; `[c`/`]c` or `K`/`J`: hunks; `[m`/`]m` or `[/`/`]/`: files.
+- n/x/o `[[`/`]]`: section starts; `[]`/`][`: ends; `gu/gU/gs/gp/gP/gr`: status sections.
+- Status n `i`: next expanded hunk; n/x `gI`: add ignore entry; `.`: command line with current paths.
+- n `cc`/`cvc`: commit; `ca/cva/ce/cw`: amend/reword; `cf/cF/cs/cS/cn/cW`: fixup/squash, reference-only.
+- Stash/revert/checkout/rebase families `cz/cr/co/r` mutate files/history; read help, do not drill.
+- Fugitive `s`, `cs`, `gc`, `[c`/`]c` have Git meanings, overriding surround/comments/class navigation.
+- Three-way diff `d2o`/`d3o` obtain ours/theirs hunks. [Diff help](:Gdiffsplit!).
+- Git Telescope i/n: status `<Tab>` stages; commits `<CR>` checks out; `<C-r>m/s/h` reset mixed/soft/HARD.
+- Git branches i/n `<CR>` checkout; `<C-t/r/a/s/d/y>` track/rebase/create/switch/delete/merge.
+- Git stash `<CR>` applies; buffer-commits `<CR>` checkout file revision, `<C-x/v/t>` revision diffs.
+- Gitsigns adds NO custom/global hunk keys here; commentary and unimpaired are not installed.
+
+## Optional UIs and Sources *jc-ref-sources*
+- Command-only `:Glow`: preview n `q`/`<Esc>` close, normal scrolling; local glow needed. [Help](glow.nvim.txt).
+- `:ConformInfo`: n `q`/`<C-c>` close. Gitsigns focused popup n `q` closes. [Gitsigns help](gitsigns).
+- Gitsigns blame n `<CR>` menu; `r`/`R` reblame commit/parent; `d` diff tab; `s/S/e` show vsplit/tab/current.
+- `:Mason`: n `<CR>` details/log, `g?` help, `<C-f>` filter, `1-5` views, `q`/`<Esc>` close/clear state.
+- Mason n `i/u/U/X` install/update/all/uninstall; `c/C` versions; `<C-c>` cancel: reference-only. [Help](mason.nvim).
+- Optional Sidekick CLI-local n/t `<C-b>`/`<C-f>` pick context, `<C-.>` hide, `<C-z>` previous window.
+- CLI n `q`/`<C-q>` hide; t `<C-q>` Normal mode, `<C-p>` prompt; n `<CR>` enters terminal-input and sends Enter.
+- CLI t `<C-h/j/k/l>` navigate windows or pass through; not global navigator defaults.
+- Sidekick falls back to Telescope context picking; its `<CR>` sends context instead of opening files.
+- No prescribed terminal-exit drill. CLI tools require separate installation/authentication. [Help](sidekick.nvim.txt).
+- Sources: lua/user/keymaps.lua, lsp.lua, plugins.lua; Neovim 0.12.5 runtime docs; installed plugin code.
+- Installed opt root: /home/jackson/.local/share/jc-nvim/site/pack/core/opt/ (not current online docs).
+- Revisions: Blink 78336bc, Copilot 7e6723a, Sidekick 208e1c5, Flash 5f0f270, surround 8b47db6.
+- Telescope 40aedd8, Harpoon 87b1a35, netrw.nvim 3f643df, textobjects 898ee30, Fugitive 3b753cf.
+- Autopairs 430522f, tabout 9a34994; behavior above follows executable presets over stale README examples.
+- This reference changes no mappings. [Back to Course](@tutor:jc-nvim) | [Tutor help](:Tutor).

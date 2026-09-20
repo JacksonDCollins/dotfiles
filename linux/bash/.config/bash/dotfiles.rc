@@ -1,0 +1,43 @@
+[[ $- == *i* ]] || return
+
+if [[ -z ${OMARCHY_PATH:-} || ! -r "$OMARCHY_PATH/default/bash/rc" ]]; then
+        if [[ ${TERM:-} != "dumb" ]] && command -v starship >/dev/null 2>&1; then
+                eval "$(starship init bash)"
+        elif [[ ${TERM:-} != "dumb" ]]; then
+                if [[ -n ${WSL_DISTRO_NAME:-} || -n ${WSL_INTEROP:-} ]]; then
+                        PS1='\[\033[38;5;75m\]WSL\[\033[0m\] '
+                else
+                        PS1=''
+                fi
+                PS1+='\[\033[38;5;108m\]\u@\h\[\033[0m\] \[\033[38;5;179m\]\w\[\033[0m\] \$ '
+        else
+                PS1='\u@\h:\w\$ '
+        fi
+
+        case ":$PATH:" in
+        *":$HOME/.local/bin:"*) ;;
+        *) PATH="${PATH:+$PATH:}$HOME/.local/bin" ;;
+        esac
+        export PATH
+
+        if command -v zoxide &>/dev/null; then
+                eval "$(zoxide init --cmd cd bash)"
+        else
+                echo "zoxide could not be found, please install it from https://github.com/ajeetdsouza/zoxide"
+        fi
+fi
+
+shopt -s dotglob
+
+export DOTFILES="$HOME/dotfiles"
+if [[ -d $HOME/tmux-bins/tsm/bin && ":$PATH:" != *":$HOME/tmux-bins/tsm/bin:"* ]]; then
+        export PATH="$HOME/tmux-bins/tsm/bin:$PATH"
+fi
+alias vimdiff='nvim -d'
+if command -v fastfetch &>/dev/null; then
+        fastfetch
+else
+        echo "fastfetch could not be found, please install it from https://github.com/fastfetch/fastfetch"
+fi
+
+[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
