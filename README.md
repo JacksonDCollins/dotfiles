@@ -35,9 +35,21 @@ are not supported by these configs. Run `Hyprland --version` to check your versi
   its optional browser/email shortcuts still require Firefox and Betterbird.
 - `jacktop` preserves the 4K, scale-2 monitor settings.
 
-There is no standalone Quickshell bar here yet. The archived workspace widget
-under `deprecated/` requires Omarchy and is not installed. Installing Quickshell
-alone does not create a bar, launcher, lock screen, or notification service.
+## Quickshell wallpaper
+
+`linux/quickshell` installs a wallpaper-only shell, with one background window per
+monitor and a bundled image (`wallpaper.jpeg`). Change the `wallpaper` URL
+in `~/.config/quickshell/shell.qml` to select your own image. It does not take input
+focus or reserve screen space.
+
+Stow also installs `quickshell.service` and its `graphical-session.target.wants`
+link. UWSM starts and stops it with the graphical session. After updating dotfiles
+in an already running session, use `systemctl --user daemon-reload` followed by
+`systemctl --user start quickshell.service`, or log out and back in.
+
+There is no standalone bar yet. Add future widgets to this same shell rather
+than launching another copy. The archived Omarchy widget under `deprecated/`
+is not installed. Mako continues to provide notifications.
 
 The OpenRouter usage script and its service/timer/path units have been removed.
 For an older installation, disable the old units before removing their files:

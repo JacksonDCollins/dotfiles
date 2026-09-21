@@ -17,7 +17,8 @@ grep -q 'uwsm stop' "$repo/linux/hypr/.config/hypr/dotfiles/bindings.lua"
 ! grep -q 'hl.dsp.exit' "$repo/linux/hypr/.config/hypr/dotfiles/bindings.lua"
 grep -q 'uwsm app -- firefox' "$repo/machines/work/hypr/.config/hypr/dotfiles/bindings_machine.lua"
 grep -q 'uwsm app -- betterbird' "$repo/machines/work/hypr/.config/hypr/dotfiles/bindings_machine.lua"
-configs=(.bashrc .config/foot/foot.ini .config/tmux/tmux.conf .config/hypr/hyprland.lua)
+configs=(.bashrc .config/foot/foot.ini .config/tmux/tmux.conf .config/hypr/hyprland.lua
+    .config/quickshell/shell.qml .config/systemd/user/quickshell.service)
 for config in "${configs[@]}"; do
     mkdir -p "$(dirname "$HOME/$config")"
     printf '%s\n' 'original config' > "$HOME/$config"
@@ -27,6 +28,8 @@ for profile in default default work jacktop default; do
     for config in "${configs[@]}"; do
         [[ -L "$HOME/$config" ]]
     done
+    [[ -r "$HOME/.config/quickshell/wallpaper.jpeg" ]]
+    [[ $(realpath "$HOME/.config/systemd/user/graphical-session.target.wants/quickshell.service") == "$(realpath "$HOME/.config/systemd/user/quickshell.service")" ]]
     [[ ! -e "$HOME/.local/bin/omarchy-agent-usage-openrouter" ]]
     [[ ! -e "$HOME/.config/bash/dotfiles.rc" ]]
     [[ ! -e "$HOME/.config/foot/dotfiles.ini" ]]
@@ -40,4 +43,5 @@ bash "$repo/uninstall.sh" > "$tmp/uninstall.log" 2>&1 || { cat "$tmp/uninstall.l
 for config in "${configs[@]}"; do
     [[ ! -L "$HOME/$config" && $(cat "$HOME/$config") == 'original config' ]]
 done
+[[ ! -L "$HOME/.config/systemd/user/graphical-session.target.wants/quickshell.service" ]]
 printf '%s\n' 'PASS: install, profile switching, Hyprland validation (if available), and restore'
