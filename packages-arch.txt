@@ -23,4 +23,3 @@ curl
 sqlite
 gd
 readline
-zlib
