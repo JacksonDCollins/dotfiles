@@ -1,0 +1,13 @@
+foot
+neovim
+tmux
+quickshell
+fzf
+zoxide
+starship
+fastfetch
+ttf-jetbrains-mono-nerd
+wl-clipboard
+ripgrep
+fd
+base-devel

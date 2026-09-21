@@ -1,10 +1,39 @@
 # Dotfiles
 
-Install with `bash install.sh <profile>` as your regular user. Profiles are the
-subdirectories of `machines/`; the default is `default`. GNU Stow is required.
+On Arch/CachyOS, run `bash setup.sh <profile>` as your regular user. It installs
+missing dependencies from `packages-arch.txt` (and Stow) via sudo/pacman, then runs
+`install.sh`. A package install performs a full system upgrade to avoid partial
+Arch upgrades; pacman asks for confirmation. If everything is installed, no sudo
+or package transaction is needed. Profiles are the subdirectories of `machines/`;
+the default is `default`.
+
+`bash install.sh <profile>` remains configuration-only, with GNU Stow required.
+Use it for offline reapplication or on other distributions after installing the
+equivalent dependencies yourself. Uninstalling dotfiles does not remove packages.
 Stow installs complete `.bashrc`, Foot, tmux, and Hyprland configs directly.
 There are no generated entrypoints or injected include/source hooks. Existing
 files are backed up and tracked; `bash uninstall.sh` restores them.
+
+## Dependency ownership
+
+`packages-arch.txt` owns user applications and their configuration dependencies,
+independently of Hyprcachy:
+
+- Applications: Foot, Neovim, tmux, and Quickshell for the wallpaper shell.
+- Bash: Starship, Fastfetch, and Zoxide (also used by the tmux session picker).
+- Tmux session picker: fzf.
+- Foot/editor appearance: JetBrains Mono Nerd Font.
+- Editor clipboard/search/build support: wl-clipboard, ripgrep, fd, and base-devel.
+
+Hyprcachy installs the OS/desktop infrastructure plus Git and Stow, clones/updates this
+repository as the user, installs packages from this validated data-only list as
+root, then runs `install.sh` as the user. It never executes dotfiles scripts as
+root. Publish changes here before updating a Hyprcachy installer that requires them.
+
+This moves the existing dependencies; it does not add every language toolchain.
+Neovim's Mason setup still needs any additional runtimes required by your configured
+languages. Those belong here or in project setup, not in Hyprcachy's OS package list.
+Package installation is explicit setup work, never a shell/editor startup hook.
 
 ## Standalone desktop
 
@@ -12,7 +41,7 @@ Hyprland uses its native Lua configuration (tested with stock Hyprland 0.56.2),
 not Omarchy's helpers. Older Hyprland releases without Lua configuration support
 are not supported by these configs. Run `Hyprland --version` to check your version.
 
-- Install `hyprland` and `foot`; use `ttf-jetbrains-mono-nerd` for the configured font.
+- Install `hyprland`; dotfiles setup supplies Foot and the configured JetBrains Mono Nerd Font.
 - Install `uwsm`; Hyprcachy's greetd launches
   `uwsm start -e -D Hyprland hyprland.desktop` (the packaged UWSM session command).
 - Install `hyprpolkitagent`; Hyprcachy enables its systemd user service globally.
@@ -58,6 +87,7 @@ Fresh installations do not need this migration.
 
 ## Checks
 
-Run `bash tests/standalone.sh` to test installation, profile switching, and
+Run `python tests/test_setup.py` for mocked dependency-bootstrap checks (no real
+package installation), and `bash tests/standalone.sh` to test installation, profile switching, and
 uninstallation in a temporary HOME. It also runs Hyprland's offline config
 validator when available; it does not reload your current desktop.
