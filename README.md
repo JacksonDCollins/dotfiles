@@ -97,12 +97,37 @@ are not supported by these configs. Run `Hyprland --version` to check your versi
   its optional browser/email shortcuts still require Firefox and Betterbird.
 - `jacktop` preserves the 4K, scale-2 monitor settings.
 
+## Appearance
+
+Catppuccin Mocha is fixed across Neovim, Foot, tmux, Hyprland borders, and Mako
+notifications, with mauve accents. The `configs/theme` Stow package installs one
+shared `~/.config/theme/` directory:
+
+- `nvim.lua`: theme plugin, variant, and options.
+- `foot.ini`: terminal palette.
+- `tmux.conf`: pane, message, and statusline colors.
+- `hyprland.lua`: desktop border colors.
+- `mako.conf`: notification colors.
+- `desktop.json` and `wallpaper.jpeg`: Quickshell background color and image.
+
+The app configs load these native theme files, keeping appearance separate from
+behavior and keybindings. To change the look later, edit or replace this bundle;
+there is no theme switcher, generator, or Omarchy dependency. Always install the
+`theme` package alongside these apps, including when using Stow manually.
+Neovim uses Catppuccin's normal opaque backgrounds; forced-transparency overrides
+are gone. Existing statusline and netrw highlight hooks remain. The bundled
+purple wallpaper image is unchanged.
+
+Reapply dotfiles to install these settings, then reopen Neovim and Foot. The
+installer reloads tmux if running; logging out and back in applies the desktop
+and notification settings without manually restarting individual services.
+
 ## Quickshell wallpaper
 
-`linux/quickshell` installs a wallpaper-only shell, with one background window per
-monitor and a bundled image (`wallpaper.jpeg`). Change the `wallpaper` URL
-in `~/.config/quickshell/shell.qml` to select your own image. It does not take input
-focus or reserve screen space.
+`configs/quickshell` installs a wallpaper-only shell, with one background window
+per monitor. It loads `~/.config/theme/desktop.json`; change its `wallpaper` filename
+to select another image in the theme bundle. It does not take input focus or
+reserve screen space.
 
 Stow also installs `quickshell.service` and its `graphical-session.target.wants`
 link. UWSM starts and stops it with the graphical session. After updating dotfiles

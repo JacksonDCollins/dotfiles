@@ -32,8 +32,8 @@ get_session_name_cmd() {
         # Resolve format strings at script time (they're based on config, not session state)
         local status_active
         local status_inactive
-        status_active="$(tmux display-message -p "$(tmux_option_or_fallback "@t-status-active" "#[fg=#cdd6f4,bg=#585b70]")")"
-        status_inactive="$(tmux display-message -p "$(tmux_option_or_fallback "@t-status-inactive" "#[fg=#585b70,bg=#1e1e2e]")")"
+        status_active="$(tmux display-message -p "$(tmux_option_or_fallback "@t-status-active" "#[fg=default,bg=default]")")"
+        status_inactive="$(tmux display-message -p "$(tmux_option_or_fallback "@t-status-inactive" "#[fg=default,bg=default]")")"
         local idx="$1"
 
         # CRITICAL: Cannot use #{...} format variables inside #() because they get evaluated

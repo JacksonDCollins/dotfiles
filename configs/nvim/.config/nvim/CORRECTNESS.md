@@ -38,7 +38,7 @@ Host-level tool availability is intentionally out of scope.
 - [x] Scope Copilot loading state to pending requests for the current buffer.
 - [x] Close or reuse the Copilot spinner timer and refresh both native and tpipeline statuslines while it animates.
 - [x] Render files in the current directory as named files rather than `[No Name]`.
-- [x] Reapply custom statusline, netrw, and transparency highlights after colorscheme changes.
+- [x] Reapply custom statusline and netrw highlights after colorscheme changes; let the theme own backgrounds.
 - [x] Use a valid statusline highlight fallback outside tmux.
 
 ## Core Behavior And Maintenance
