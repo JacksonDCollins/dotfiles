@@ -1,2 +1,0 @@
-# Personal shell setup is loaded by the managed dotfiles hooks.
-[[ $- != *i* ]] && return

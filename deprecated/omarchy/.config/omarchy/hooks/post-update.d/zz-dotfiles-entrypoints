@@ -154,12 +154,3 @@ configure_workspace_widget() {
 }
 
 configure_workspace_widget
-
-enable_usage_timer() {
-	command -v systemctl >/dev/null 2>&1 || return 0
-	systemctl --user daemon-reload >/dev/null 2>&1 || true
-	systemctl --user enable --now omarchy-agent-usage-openrouter.timer >/dev/null 2>&1 || true
-	systemctl --user enable --now omarchy-agent-usage-openrouter.path >/dev/null 2>&1 || true
-}
-
-enable_usage_timer

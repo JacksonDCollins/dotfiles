@@ -1,11 +1,11 @@
 hl.unbind("SUPER + ALT + B")
-o.bind("SUPER + ALT + B", "Browser (Alternative)", { launch = "firefox" })
+hl.bind("SUPER + ALT + B", hl.dsp.exec_cmd("firefox"))
 
 hl.unbind("SUPER + SHIFT + E")
-o.bind("SUPER + SHIFT + E", "Email", { launch = "betterbird" })
+hl.bind("SUPER + SHIFT + E", hl.dsp.exec_cmd("betterbird"))
 
 -- Match monitors.lua: each monitor owns workspaces index and index + 4.
-local monitors = require("hypr.monitors")
+local monitors = require("monitors")
 --unbund all monitor focus bindings first to avoid duplicates
 for code = 10, 19 do
 	hl.unbind("SUPER + code:" .. code)
@@ -13,7 +13,7 @@ end
 for index, output in ipairs(monitors) do
 	local key = "SUPER + " .. output[2]
 	hl.unbind(key)
-	o.bind(key, "Focus monitor " .. index .. " or toggle its workspace", function()
+	hl.bind(key, function()
 		local monitor = hl.get_monitor(output[1])
 		if not monitor then
 			return

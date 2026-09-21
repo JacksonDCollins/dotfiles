@@ -128,57 +128,6 @@ validate_manifests() {
         fi
 }
 
-remove_block() {
-        local target="$1"
-        local start="$2"
-        local finish="$3"
-        local start_line finish_line
-
-        [ -f "$target" ] && [ ! -L "$target" ] || return 0
-        start_line=$(grep -n -m1 -xF -- "$start" "$target" || true)
-        finish_line=$(grep -n -m1 -xF -- "$finish" "$target" || true)
-        start_line=${start_line%%:*}
-        finish_line=${finish_line%%:*}
-        [[ $start_line =~ ^[0-9]+$ && $finish_line =~ ^[0-9]+$ && $start_line -lt $finish_line ]] || return 0
-        sed -i "${start_line},${finish_line}d" "$target"
-}
-
-restore_workspace_widget() {
-        local config="$HOME/.config/omarchy/shell.json"
-        local temp
-
-        [ -f "$config" ] && [ ! -L "$config" ] || return 0
-        if ! jq -e 'type == "object" and .version == 1' "$config" >/dev/null 2>&1; then
-                printf 'Warning: cannot restore workspace widget in invalid %s\n' "$config" >&2
-                return 0
-        fi
-
-        temp=$(mktemp "$(dirname -- "$config")/.shell.json.XXXXXX")
-        if ! jq --ascii-output --arg stock omarchy.workspaces --arg custom jackson.workspaces '
-                def restore_workspace:
-                        if type == "object" and (.id // "" | tostring) == $custom then .id = $stock
-                        elif type == "string" and . == $custom then $stock
-                        else .
-                        end;
-                if (.bar.layout | type) == "object" then
-                        .bar.layout.left |= (if type == "array" then map(restore_workspace) else . end)
-                        | .bar.layout.center |= (if type == "array" then map(restore_workspace) else . end)
-                        | .bar.layout.right |= (if type == "array" then map(restore_workspace) else . end)
-                else .
-                end
-        ' "$config" >"$temp"; then
-                rm -f -- "$temp"
-                return 1
-        fi
-        chmod --reference="$config" "$temp"
-        if cmp -s -- "$temp" "$config"; then
-                rm -f -- "$temp"
-        else
-                mv -T -- "$temp" "$config"
-                printf 'Restored stock workspace widget in %s\n' "$config"
-        fi
-}
-
 remove_recorded_links() {
         local target source
 
@@ -299,11 +248,6 @@ printf '%s\n' 'Uninstalling dotfiles...'
 
 remove_unchanged_created
 remove_unchanged_replacements
-remove_block "$HOME/.bashrc" '# dotfiles:bash-env:begin' '# dotfiles:bash-env:end'
-remove_block "$HOME/.bashrc" '# dotfiles:bash-rc:begin' '# dotfiles:bash-rc:end'
-remove_block "$HOME/.config/foot/foot.ini" '# dotfiles:foot:begin' '# dotfiles:foot:end'
-remove_block "$HOME/.config/hypr/hyprland.lua" '-- dotfiles:hypr:begin' '-- dotfiles:hypr:end'
-restore_workspace_widget
 
 printf 'Removing machine-specific configs for: %s\n' "$MACHINE"
 unstow_from "$REPO_ROOT/machines/$MACHINE"
@@ -314,16 +258,9 @@ unstow_from "$REPO_ROOT/linux"
 printf '%s\n' 'Removing common configs'
 unstow_from "$REPO_ROOT/all"
 
-if command -v omarchy-shell >/dev/null 2>&1; then
-        omarchy-shell -q shell reloadConfig >/dev/null 2>&1 || true
-        omarchy-shell -q shell rescanPlugins >/dev/null 2>&1 || true
-fi
-
 remove_recorded_links
 preserve_modified_created
 restore_backups
-# Backups created during migration may still contain the former source block.
-remove_block "$HOME/.config/tmux/tmux.conf" '# dotfiles:tmux:begin' '# dotfiles:tmux:end'
 rm -f -- "$BACKUP_MANIFEST" "$CREATED_MANIFEST" "$DIRECTORY_MANIFEST" "$LINK_MANIFEST" "$MACHINE_STATE"
 remove_created_directories
 

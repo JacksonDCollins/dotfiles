@@ -98,65 +98,6 @@ backup_target() {
         printf '%s\t%s\tpending\n' "$target" "$backup" >>"$NEXT_BACKUP_MANIFEST"
 }
 
-record_created() {
-        local target="$1"
-        local recorded hash found=0
-        local updated="$TRANSACTION_DIR/created.updated"
-
-        : >"$updated"
-        while IFS=$'\t' read -r recorded hash; do
-                if [ "$recorded" = "$target" ]; then
-                        printf '%s\tpending\n' "$recorded" >>"$updated"
-                        found=1
-                else
-                        printf '%s\t%s\n' "$recorded" "$hash" >>"$updated"
-                fi
-        done <"$NEXT_CREATED_MANIFEST"
-        ((found)) || printf '%s\tpending\n' "$target" >>"$updated"
-        mv -- "$updated" "$NEXT_CREATED_MANIFEST"
-}
-
-is_tracked_backup() {
-        local target="$1"
-        local recorded
-
-        while IFS=$'\t' read -r recorded _; do
-                [ "$recorded" = "$target" ] && return 0
-        done <"$NEXT_BACKUP_MANIFEST"
-        return 1
-}
-
-is_tracked_created() {
-        local target="$1"
-        local recorded
-
-        while IFS=$'\t' read -r recorded _; do
-                [ "$recorded" = "$target" ] && return 0
-        done <"$NEXT_CREATED_MANIFEST"
-        return 1
-}
-
-mark_backup_pending() {
-        local target="$1"
-        local recorded backup hash found=0
-        local updated="$TRANSACTION_DIR/backups.updated"
-
-        : >"$updated"
-        while IFS=$'\t' read -r recorded backup hash; do
-                if [ "$recorded" = "$target" ]; then
-                        printf '%s\t%s\tpending\n' "$recorded" "$backup" >>"$updated"
-                        found=1
-                else
-                        printf '%s\t%s\t%s\n' "$recorded" "$backup" "$hash" >>"$updated"
-                fi
-        done <"$NEXT_BACKUP_MANIFEST"
-        if (( ! found )); then
-                rm -f -- "$updated"
-                return 1
-        fi
-        mv -- "$updated" "$NEXT_BACKUP_MANIFEST"
-}
-
 finalize_created_hashes() {
         local target hash checksum
         local finalized="$TRANSACTION_DIR/created.final"
@@ -205,63 +146,6 @@ record_created_directories() {
                 done <"$NEXT_DIRECTORY_MANIFEST"
                 printf '%s\n' "$dir" >>"$NEXT_DIRECTORY_MANIFEST"
         done
-}
-
-prepare_regular() {
-        local target="$1"
-        local template="$2"
-
-        if [ -f "$target" ] && [ ! -L "$target" ]; then
-                return 0
-        elif [ -e "$target" ] || [ -L "$target" ]; then
-                backup_target "$target"
-        else
-                record_created "$target"
-        fi
-
-        mkdir -p -- "$(dirname -- "$target")"
-        cp -- "$template" "$target"
-}
-
-prepare_owned_regular() {
-        local target="$1"
-        local template="$2"
-        local tracking=
-
-        if is_tracked_backup "$target"; then
-                tracking=backup
-        elif is_tracked_created "$target"; then
-                tracking=created
-        elif [ -e "$target" ] || [ -L "$target" ]; then
-                backup_target "$target"
-                tracking=backup
-        else
-                record_created "$target"
-                tracking=created
-        fi
-
-        if [ -e "$target" ] || [ -L "$target" ]; then
-                if [ ! -f "$target" ] || [ -L "$target" ]; then
-                        printf 'Error: Managed entrypoint is not a regular file: %s\n' "$target" >&2
-                        return 1
-                fi
-                if cmp -s -- "$template" "$target"; then
-                        if [ "$tracking" = backup ]; then
-                                mark_backup_pending "$target"
-                        else
-                                record_created "$target"
-                        fi
-                        return 0
-                fi
-        fi
-
-        mkdir -p -- "$(dirname -- "$target")"
-        cp -- "$template" "$target"
-        if [ "$tracking" = backup ]; then
-                mark_backup_pending "$target"
-        else
-                record_created "$target"
-        fi
 }
 
 record_missing_parents() {
@@ -437,38 +321,6 @@ if [ ! -d "$REPO_ROOT/machines/$MACHINE" ]; then
         exit 1
 fi
 
-OMARCHY_ROOT=${OMARCHY_PATH:-/usr/share/omarchy}
-if [ ! -r "$OMARCHY_ROOT/default/bashrc" ]; then
-        OMARCHY_ROOT=
-fi
-TMUX_CONFIG="$HOME/.config/tmux/tmux.conf"
-tmux_template="$REPO_ROOT/templates/tmux.conf"
-
-if [ -n "$OMARCHY_ROOT" ]; then
-        bash_template="$OMARCHY_ROOT/default/bashrc"
-        foot_template="$OMARCHY_ROOT/config/foot/foot.ini"
-else
-        bash_template="$REPO_ROOT/templates/bashrc"
-        foot_template="$REPO_ROOT/templates/foot.ini"
-fi
-
-BASE_TARGETS=(
-        "$HOME/.bashrc"
-        "$HOME/.config/foot/foot.ini"
-        "$TMUX_CONFIG"
-)
-BASE_TEMPLATES=("$bash_template" "$foot_template" "$tmux_template")
-if [ -n "$OMARCHY_ROOT" ]; then
-        for hypr_template in "$OMARCHY_ROOT"/config/hypr/*.lua; do
-                [ -f "$hypr_template" ] || continue
-                if [ "${hypr_template##*/}" = monitors.lua ] && [ -f "$REPO_ROOT/machines/$MACHINE/hypr/.config/hypr/monitors.lua" ]; then
-                        continue
-                fi
-                BASE_TARGETS+=("$HOME/.config/hypr/${hypr_template##*/}")
-                BASE_TEMPLATES+=("$hypr_template")
-        done
-fi
-
 TRANSACTION_DIR=$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-install.XXXXXX")
 SNAPSHOT_MANIFEST="$TRANSACTION_DIR/snapshots.tsv"
 TRANSACTION_BACKUPS="$TRANSACTION_DIR/new-backups"
@@ -516,34 +368,12 @@ done
 collect_staged_links
 record_staged_directories
 
-for i in "${!BASE_TARGETS[@]}"; do
-        validate_target "${BASE_TARGETS[$i]}"
-        if [ ! -f "${BASE_TEMPLATES[$i]}" ] || [ ! -r "${BASE_TEMPLATES[$i]}" ]; then
-                printf 'Error: Base template %s is not a readable file\n' "${BASE_TEMPLATES[$i]}" >&2
-                exit 1
+FALLBACK_REMOVALS=()
+for target in "$HOME/.config/hypr/"*.lua; do
+        if is_repo_link "$target" && [ ! -e "$target" ]; then
+                FALLBACK_REMOVALS+=("$target")
         fi
 done
-
-SHELL_CONFIG="$HOME/.config/omarchy/shell.json"
-HOOK_TARGETS=(
-        "$HOME/.bashrc"
-        "$HOME/.config/foot/foot.ini"
-        "$TMUX_CONFIG"
-        "$HOME/.config/hypr/hyprland.lua"
-        "$SHELL_CONFIG"
-)
-for target in "${HOOK_TARGETS[@]}"; do
-        validate_target "$target"
-done
-
-FALLBACK_REMOVALS=()
-if [ -z "$OMARCHY_ROOT" ]; then
-        for target in "$HOME/.config/hypr/"*.lua; do
-                if is_repo_link "$target" && [ ! -e "$target" ]; then
-                        FALLBACK_REMOVALS+=("$target")
-                fi
-        done
-fi
 
 for target in "$BACKUP_MANIFEST" "$CREATED_MANIFEST" "$DIRECTORY_MANIFEST" "$LINK_MANIFEST" "$MACHINE_STATE"; do
         snapshot_path "$target"
@@ -566,7 +396,7 @@ if [ -f "$LINK_MANIFEST" ]; then
                 fi
         done <"$LINK_MANIFEST"
 fi
-for target in "${BASE_TARGETS[@]}" "${HOOK_TARGETS[@]}" "${FALLBACK_REMOVALS[@]}"; do
+for target in "${FALLBACK_REMOVALS[@]}"; do
         snapshot_path "$target"
 done
 
@@ -578,25 +408,10 @@ done
 
 remove_obsolete_links
 
-for i in "${!BASE_TARGETS[@]}"; do
-        if [ "${BASE_TARGETS[$i]}" = "$TMUX_CONFIG" ]; then
-                prepare_owned_regular "${BASE_TARGETS[$i]}" "${BASE_TEMPLATES[$i]}"
-        else
-                prepare_regular "${BASE_TARGETS[$i]}" "${BASE_TEMPLATES[$i]}"
-        fi
-done
-
 for target in "${FALLBACK_REMOVALS[@]}"; do
         is_repo_link "$target" && [ ! -e "$target" ] && rm -f -- "$target"
 done
 
-if [ -n "$OMARCHY_ROOT" ] &&
-        [ -r "$OMARCHY_ROOT/config/omarchy/shell.json" ] &&
-        [ -r "$HOME/.config/omarchy/plugins/jackson.workspaces/manifest.json" ] &&
-        [ ! -e "$SHELL_CONFIG" ] && [ ! -L "$SHELL_CONFIG" ]; then
-        record_created "$SHELL_CONFIG"
-fi
-bash "$HOME/.config/omarchy/hooks/post-update.d/zz-dotfiles-entrypoints"
 finalize_created_hashes
 finalize_backup_hashes
 

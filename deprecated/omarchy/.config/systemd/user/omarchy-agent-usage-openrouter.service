@@ -1,6 +1,0 @@
-[Unit]
-Description=Regenerate the OpenRouter agent usage record
-
-[Service]
-Type=oneshot
-ExecStart=%h/.local/bin/omarchy-agent-usage-openrouter
