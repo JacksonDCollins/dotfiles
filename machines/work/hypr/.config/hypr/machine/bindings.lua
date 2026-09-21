@@ -5,7 +5,7 @@ hl.unbind("SUPER + SHIFT + E")
 hl.bind("SUPER + SHIFT + E", hl.dsp.exec_cmd("uwsm app -- betterbird"))
 
 -- Match monitors.lua: each monitor owns workspaces index and index + 4.
-local monitors = require("monitors")
+local monitors = require("machine.monitors")
 --unbund all monitor focus bindings first to avoid duplicates
 for code = 10, 19 do
 	hl.unbind("SUPER + code:" .. code)

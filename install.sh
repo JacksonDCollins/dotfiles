@@ -2,33 +2,33 @@
 set -e
 
 usage() {
-        printf 'Usage: %s [machine]\n' "${0##*/}" >&2
+    printf 'Usage: %s [machine]\n' "${0##*/}" >&2
 }
 
-if (( $# > 1 )); then
-        usage
-        exit 2
+if (($# > 1)); then
+    usage
+    exit 2
 fi
 
 MACHINE="${1-default}"
 if [[ ! $MACHINE =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
-        printf "Error: Invalid machine name '%s'\n" "$MACHINE" >&2
-        usage
-        exit 2
+    printf "Error: Invalid machine name '%s'\n" "$MACHINE" >&2
+    usage
+    exit 2
 fi
 
 BACKUP_SUFFIX="dotfiles-$(date +%Y%m%d%H%M%S)-$$"
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-STOW_DIRS=("$REPO_ROOT/all" "$REPO_ROOT/linux" "$REPO_ROOT/machines/$MACHINE")
+STOW_DIRS=("$REPO_ROOT/configs" "$REPO_ROOT/machines/$MACHINE")
 if [[ -z ${HOME:-} || $HOME != /* || $HOME == / ]]; then
-        printf "Error: HOME must be an absolute user directory, got '%s'\n" "${HOME:-}" >&2
-        exit 2
+    printf "Error: HOME must be an absolute user directory, got '%s'\n" "${HOME:-}" >&2
+    exit 2
 fi
 HOME=${HOME%/}
 resolved_home=$(realpath -m -- "$HOME")
 if [[ $resolved_home == "$REPO_ROOT" || $resolved_home == "$REPO_ROOT/"* ]]; then
-        printf 'Error: HOME must not resolve inside the dotfiles repository\n' >&2
-        exit 2
+    printf 'Error: HOME must not resolve inside the dotfiles repository\n' >&2
+    exit 2
 fi
 STATE_DIR="$HOME/.local/state/dotfiles"
 BACKUP_MANIFEST="$STATE_DIR/backups.tsv"
@@ -44,281 +44,281 @@ SNAPSHOT_COUNT=0
 TRANSACTION_ACTIVE=0
 
 is_repo_path() {
-        local resolved
-        resolved=$(realpath -m -- "$1")
-        [[ $resolved == "$REPO_ROOT" || $resolved == "$REPO_ROOT/"* ]]
+    local resolved
+    resolved=$(realpath -m -- "$1")
+    [[ $resolved == "$REPO_ROOT" || $resolved == "$REPO_ROOT/"* ]]
 }
 
 is_repo_link() {
-        [ -L "$1" ] && is_repo_path "$1"
+    [ -L "$1" ] && is_repo_path "$1"
 }
 
 validate_target() {
-        local target="$1"
-        local parent resolved_parent
+    local target="$1"
+    local parent resolved_parent
 
-        parent=$(dirname -- "$target")
-        resolved_parent=$(realpath -m -- "$parent")
-        if [[ $resolved_parent != "$resolved_home" && $resolved_parent != "$resolved_home/"* ]]; then
-                printf 'Error: Target %s has a parent outside HOME\n' "$target" >&2
-                return 1
+    parent=$(dirname -- "$target")
+    resolved_parent=$(realpath -m -- "$parent")
+    if [[ $resolved_parent != "$resolved_home" && $resolved_parent != "$resolved_home/"* ]]; then
+        printf 'Error: Target %s has a parent outside HOME\n' "$target" >&2
+        return 1
+    fi
+    while [ "$parent" != "$HOME" ]; do
+        if [ -L "$parent" ]; then
+            printf 'Error: Refusing parent symlink %s while installing %s\n' "$parent" "$target" >&2
+            return 1
+        elif [ -e "$parent" ] && [ ! -d "$parent" ]; then
+            printf 'Error: Parent path %s is not a directory\n' "$parent" >&2
+            return 1
         fi
-        while [ "$parent" != "$HOME" ]; do
-                if [ -L "$parent" ]; then
-                        printf 'Error: Refusing parent symlink %s while installing %s\n' "$parent" "$target" >&2
-                        return 1
-                elif [ -e "$parent" ] && [ ! -d "$parent" ]; then
-                        printf 'Error: Parent path %s is not a directory\n' "$parent" >&2
-                        return 1
-                fi
-                parent=$(dirname -- "$parent")
-        done
+        parent=$(dirname -- "$parent")
+    done
 }
 
 backup_target() {
-        local target="$1"
-        local backup="$target-$BACKUP_SUFFIX"
-        local recorded
+    local target="$1"
+    local backup="$target-$BACKUP_SUFFIX"
+    local recorded
 
-        while IFS=$'\t' read -r recorded _; do
-                if [ "$recorded" = "$target" ]; then
-                        printf 'Error: %s replaced a managed target whose original backup is already tracked\n' "$target" >&2
-                        printf '%s\n' 'Move or remove it before reinstalling to avoid an orphaned backup.' >&2
-                        return 1
-                fi
-        done <"$NEXT_BACKUP_MANIFEST"
-        if [ -e "$backup" ] || [ -L "$backup" ]; then
-                printf 'Error: Refusing to overwrite backup path %s\n' "$backup" >&2
-                return 1
+    while IFS=$'\t' read -r recorded _; do
+        if [ "$recorded" = "$target" ]; then
+            printf 'Error: %s replaced a managed target whose original backup is already tracked\n' "$target" >&2
+            printf '%s\n' 'Move or remove it before reinstalling to avoid an orphaned backup.' >&2
+            return 1
         fi
-        printf 'Moving %s to %s\n' "$target" "$backup"
-        printf '%s\t%s\n' "$target" "$backup" >>"$TRANSACTION_BACKUPS"
-        mv -- "$target" "$backup"
+    done <"$NEXT_BACKUP_MANIFEST"
+    if [ -e "$backup" ] || [ -L "$backup" ]; then
+        printf 'Error: Refusing to overwrite backup path %s\n' "$backup" >&2
+        return 1
+    fi
+    printf 'Moving %s to %s\n' "$target" "$backup"
+    printf '%s\t%s\n' "$target" "$backup" >>"$TRANSACTION_BACKUPS"
+    mv -- "$target" "$backup"
 
-        printf '%s\t%s\tpending\n' "$target" "$backup" >>"$NEXT_BACKUP_MANIFEST"
+    printf '%s\t%s\tpending\n' "$target" "$backup" >>"$NEXT_BACKUP_MANIFEST"
 }
 
 finalize_created_hashes() {
-        local target hash checksum
-        local finalized="$TRANSACTION_DIR/created.final"
+    local target hash checksum
+    local finalized="$TRANSACTION_DIR/created.final"
 
-        : >"$finalized"
-        while IFS=$'\t' read -r target hash; do
-                if [ -z "$hash" ] || [ "$hash" = pending ]; then
-                        if [ ! -f "$target" ] || [ -L "$target" ]; then
-                                printf 'Error: Created target is not a regular file: %s\n' "$target" >&2
-                                return 1
-                        fi
-                        checksum=$(sha256sum -- "$target")
-                        hash=${checksum%% *}
-                fi
-                printf '%s\t%s\n' "$target" "$hash" >>"$finalized"
-        done <"$NEXT_CREATED_MANIFEST"
-        mv -- "$finalized" "$NEXT_CREATED_MANIFEST"
+    : >"$finalized"
+    while IFS=$'\t' read -r target hash; do
+        if [ -z "$hash" ] || [ "$hash" = pending ]; then
+            if [ ! -f "$target" ] || [ -L "$target" ]; then
+                printf 'Error: Created target is not a regular file: %s\n' "$target" >&2
+                return 1
+            fi
+            checksum=$(sha256sum -- "$target")
+            hash=${checksum%% *}
+        fi
+        printf '%s\t%s\n' "$target" "$hash" >>"$finalized"
+    done <"$NEXT_CREATED_MANIFEST"
+    mv -- "$finalized" "$NEXT_CREATED_MANIFEST"
 }
 
 finalize_backup_hashes() {
-        local target backup hash checksum
-        local finalized="$TRANSACTION_DIR/backups.final"
+    local target backup hash checksum
+    local finalized="$TRANSACTION_DIR/backups.final"
 
-        : >"$finalized"
-        while IFS=$'\t' read -r target backup hash; do
-                if [ -z "$hash" ] || [ "$hash" = pending ]; then
-                        if [ -f "$target" ] && [ ! -L "$target" ]; then
-                                checksum=$(sha256sum -- "$target")
-                                hash=${checksum%% *}
-                        else
-                                hash=-
-                        fi
-                fi
-                printf '%s\t%s\t%s\n' "$target" "$backup" "$hash" >>"$finalized"
-        done <"$NEXT_BACKUP_MANIFEST"
-        mv -- "$finalized" "$NEXT_BACKUP_MANIFEST"
+    : >"$finalized"
+    while IFS=$'\t' read -r target backup hash; do
+        if [ -z "$hash" ] || [ "$hash" = pending ]; then
+            if [ -f "$target" ] && [ ! -L "$target" ]; then
+                checksum=$(sha256sum -- "$target")
+                hash=${checksum%% *}
+            else
+                hash=-
+            fi
+        fi
+        printf '%s\t%s\t%s\n' "$target" "$backup" "$hash" >>"$finalized"
+    done <"$NEXT_BACKUP_MANIFEST"
+    mv -- "$finalized" "$NEXT_BACKUP_MANIFEST"
 }
 
 record_created_directories() {
-        local dir recorded
+    local dir recorded
 
-        for dir in "${MISSING_DIRS[@]}"; do
-                [ -d "$dir" ] && [ ! -L "$dir" ] || continue
-                while IFS= read -r recorded; do
-                        [ "$recorded" = "$dir" ] && continue 2
-                done <"$NEXT_DIRECTORY_MANIFEST"
-                printf '%s\n' "$dir" >>"$NEXT_DIRECTORY_MANIFEST"
-        done
+    for dir in "${MISSING_DIRS[@]}"; do
+        [ -d "$dir" ] && [ ! -L "$dir" ] || continue
+        while IFS= read -r recorded; do
+            [ "$recorded" = "$dir" ] && continue 2
+        done <"$NEXT_DIRECTORY_MANIFEST"
+        printf '%s\n' "$dir" >>"$NEXT_DIRECTORY_MANIFEST"
+    done
 }
 
 record_missing_parents() {
-        local parent
+    local parent
 
-        parent=$(dirname -- "$1")
-        while [ "$parent" != "$HOME" ]; do
-                if [ ! -e "$parent" ] && [ ! -L "$parent" ] && [[ ! ${RECORDED_MISSING_DIRS[$parent]+present} ]]; then
-                        RECORDED_MISSING_DIRS["$parent"]=1
-                        MISSING_DIRS+=("$parent")
-                fi
-                parent=$(dirname -- "$parent")
-        done
+    parent=$(dirname -- "$1")
+    while [ "$parent" != "$HOME" ]; do
+        if [ ! -e "$parent" ] && [ ! -L "$parent" ] && [[ ! ${RECORDED_MISSING_DIRS[$parent]+present} ]]; then
+            RECORDED_MISSING_DIRS["$parent"]=1
+            MISSING_DIRS+=("$parent")
+        fi
+        parent=$(dirname -- "$parent")
+    done
 }
 
 snapshot_path() {
-        local target="$1"
-        local snapshot
+    local target="$1"
+    local snapshot
 
-        [[ $target == "$HOME/"* ]] || return 1
-        [[ ${SNAPSHOTTED_PATHS[$target]+present} ]] && return 0
-        SNAPSHOTTED_PATHS["$target"]=1
-        record_missing_parents "$target"
-        SNAPSHOT_COUNT=$((SNAPSHOT_COUNT + 1))
-        snapshot="$TRANSACTION_DIR/snapshots/$SNAPSHOT_COUNT"
+    [[ $target == "$HOME/"* ]] || return 1
+    [[ ${SNAPSHOTTED_PATHS[$target]+present} ]] && return 0
+    SNAPSHOTTED_PATHS["$target"]=1
+    record_missing_parents "$target"
+    SNAPSHOT_COUNT=$((SNAPSHOT_COUNT + 1))
+    snapshot="$TRANSACTION_DIR/snapshots/$SNAPSHOT_COUNT"
 
-        if [ -e "$target" ] || [ -L "$target" ]; then
-                cp -a -- "$target" "$snapshot"
-                printf '%s\tpresent\t%s\n' "$target" "$snapshot" >>"$SNAPSHOT_MANIFEST"
-        else
-                printf '%s\tabsent\n' "$target" >>"$SNAPSHOT_MANIFEST"
-        fi
+    if [ -e "$target" ] || [ -L "$target" ]; then
+        cp -a -- "$target" "$snapshot"
+        printf '%s\tpresent\t%s\n' "$target" "$snapshot" >>"$SNAPSHOT_MANIFEST"
+    else
+        printf '%s\tabsent\n' "$target" >>"$SNAPSHOT_MANIFEST"
+    fi
 }
 
 rollback_transaction() {
-        local target status snapshot backup dir pass failed=0
+    local target status snapshot backup dir pass failed=0
 
-        set +e
-        printf '%s\n' 'Install failed; restoring the pre-install state' >&2
-        while IFS=$'\t' read -r target status snapshot; do
-                if [ "$status" = present ] && [ -f "$snapshot" ] && [ ! -L "$snapshot" ] && [ -f "$target" ] && [ ! -L "$target" ]; then
-                        cp -a -- "$snapshot" "$target" || failed=1
-                else
-                        rm -rf -- "$target" || failed=1
-                fi
-                if [ "$status" = present ] && { [ ! -e "$target" ] || [ -L "$target" ]; }; then
-                        mkdir -p -- "$(dirname -- "$target")" || failed=1
-                        cp -a -- "$snapshot" "$target" || failed=1
-                fi
-        done <"$SNAPSHOT_MANIFEST"
-
-        while IFS=$'\t' read -r target backup; do
-                if [ -e "$backup" ] || [ -L "$backup" ]; then
-                        rm -rf -- "$target" || failed=1
-                        mv -T -- "$backup" "$target" || failed=1
-                fi
-        done <"$TRANSACTION_BACKUPS"
-
-        for ((pass = ${#MISSING_DIRS[@]}; pass > 0; pass--)); do
-                for dir in "${MISSING_DIRS[@]}"; do
-                        rmdir -- "$dir" 2>/dev/null || true
-                done
-        done
-        for dir in "${MISSING_DIRS[@]}"; do
-                [ ! -d "$dir" ] || failed=1
-        done
-
-        if ((failed)); then
-                printf 'Warning: rollback was incomplete; snapshots remain in %s\n' "$TRANSACTION_DIR" >&2
-                KEEP_TRANSACTION=1
+    set +e
+    printf '%s\n' 'Install failed; restoring the pre-install state' >&2
+    while IFS=$'\t' read -r target status snapshot; do
+        if [ "$status" = present ] && [ -f "$snapshot" ] && [ ! -L "$snapshot" ] && [ -f "$target" ] && [ ! -L "$target" ]; then
+            cp -a -- "$snapshot" "$target" || failed=1
+        else
+            rm -rf -- "$target" || failed=1
         fi
+        if [ "$status" = present ] && { [ ! -e "$target" ] || [ -L "$target" ]; }; then
+            mkdir -p -- "$(dirname -- "$target")" || failed=1
+            cp -a -- "$snapshot" "$target" || failed=1
+        fi
+    done <"$SNAPSHOT_MANIFEST"
+
+    while IFS=$'\t' read -r target backup; do
+        if [ -e "$backup" ] || [ -L "$backup" ]; then
+            rm -rf -- "$target" || failed=1
+            mv -T -- "$backup" "$target" || failed=1
+        fi
+    done <"$TRANSACTION_BACKUPS"
+
+    for ((pass = ${#MISSING_DIRS[@]}; pass > 0; pass--)); do
+        for dir in "${MISSING_DIRS[@]}"; do
+            rmdir -- "$dir" 2>/dev/null || true
+        done
+    done
+    for dir in "${MISSING_DIRS[@]}"; do
+        [ ! -d "$dir" ] || failed=1
+    done
+
+    if ((failed)); then
+        printf 'Warning: rollback was incomplete; snapshots remain in %s\n' "$TRANSACTION_DIR" >&2
+        KEEP_TRANSACTION=1
+    fi
 }
 
 finish_transaction() {
-        local exit_status=$?
+    local exit_status=$?
 
-        trap - EXIT INT TERM
-        if ((exit_status != 0 && TRANSACTION_ACTIVE)); then
-                rollback_transaction
-        fi
-        if [[ ! ${KEEP_TRANSACTION:-} ]]; then
-                rm -rf -- "${TRANSACTION_DIR:-}"
-        fi
-        exit "$exit_status"
+    trap - EXIT INT TERM
+    if ((exit_status != 0 && TRANSACTION_ACTIVE)); then
+        rollback_transaction
+    fi
+    if [[ ! ${KEEP_TRANSACTION:-} ]]; then
+        rm -rf -- "${TRANSACTION_DIR:-}"
+    fi
+    exit "$exit_status"
 }
 
 run_stow() {
-        local dir="$1"
-        local target="$2"
-        local package
-        local packages=()
-        shift 2
+    local dir="$1"
+    local target="$2"
+    local package
+    local packages=()
+    shift 2
 
-        for package in "$dir"/*; do
-                [ -d "$package" ] || continue
-                packages+=("${package##*/}")
-        done
+    for package in "$dir"/*; do
+        [ -d "$package" ] || continue
+        packages+=("${package##*/}")
+    done
 
-        [ "${#packages[@]}" -gt 0 ] || return 0
-        stow --no-folding --dir "$dir" --target "$target" "$@" "${packages[@]}"
+    [ "${#packages[@]}" -gt 0 ] || return 0
+    stow --no-folding --dir "$dir" --target "$target" "$@" "${packages[@]}"
 }
 
 stow_from() {
-        local dir="$1"
+    local dir="$1"
 
-        run_stow "$dir" "$HOME" --verbose
+    run_stow "$dir" "$HOME" --verbose
 }
 
 collect_staged_links() {
-        local source relative target
+    local source relative target
 
-        while IFS= read -r -d '' source; do
-                relative=${source#"$TRANSACTION_DIR/preflight-home/"}
-                target="$HOME/$relative"
-                validate_target "$target"
-                MANAGED_TARGETS["$target"]=1
-                printf '%s\t%s\n' "$target" "$(realpath -m -- "$source")" >>"$NEW_LINK_MANIFEST"
-        done < <(find "$TRANSACTION_DIR/preflight-home" -type l -print0)
+    while IFS= read -r -d '' source; do
+        relative=${source#"$TRANSACTION_DIR/preflight-home/"}
+        target="$HOME/$relative"
+        validate_target "$target"
+        MANAGED_TARGETS["$target"]=1
+        printf '%s\t%s\n' "$target" "$(realpath -m -- "$source")" >>"$NEW_LINK_MANIFEST"
+    done < <(find "$TRANSACTION_DIR/preflight-home" -type l -print0)
 }
 
 record_staged_directories() {
-        local source relative target
+    local source relative target
 
-        while IFS= read -r -d '' source; do
-                [ "$source" = "$TRANSACTION_DIR/preflight-home" ] && continue
-                relative=${source#"$TRANSACTION_DIR/preflight-home/"}
-                target="$HOME/$relative"
-                validate_target "$target/.dotfiles-empty-directory"
-                record_missing_parents "$target/.dotfiles-empty-directory"
-        done < <(find "$TRANSACTION_DIR/preflight-home" -type d -empty -print0)
+    while IFS= read -r -d '' source; do
+        [ "$source" = "$TRANSACTION_DIR/preflight-home" ] && continue
+        relative=${source#"$TRANSACTION_DIR/preflight-home/"}
+        target="$HOME/$relative"
+        validate_target "$target/.dotfiles-empty-directory"
+        record_missing_parents "$target/.dotfiles-empty-directory"
+    done < <(find "$TRANSACTION_DIR/preflight-home" -type d -empty -print0)
 }
 
 prepare_stow_targets() {
-        local target source
+    local target source
 
-        while IFS=$'\t' read -r target source; do
-                if is_repo_link "$target"; then
-                        [ "$(realpath -m -- "$target")" = "$(realpath -m -- "$source")" ] || rm -f -- "$target"
-                elif [ -e "$target" ] || [ -L "$target" ]; then
-                        backup_target "$target"
-                fi
-        done <"$NEW_LINK_MANIFEST"
+    while IFS=$'\t' read -r target source; do
+        if is_repo_link "$target"; then
+            [ "$(realpath -m -- "$target")" = "$(realpath -m -- "$source")" ] || rm -f -- "$target"
+        elif [ -e "$target" ] || [ -L "$target" ]; then
+            backup_target "$target"
+        fi
+    done <"$NEW_LINK_MANIFEST"
 }
 
 remove_obsolete_links() {
-        local target source
+    local target source
 
-        [ -f "$LINK_MANIFEST" ] || return 0
-        while IFS=$'\t' read -r target source; do
-                if
-                        [[ ! ${MANAGED_TARGETS[$target]+present} ]] &&
-                                [ -L "$target" ] &&
-                                [ "$(realpath -m -- "$target")" = "$(realpath -m -- "$source")" ]
-                then
-                        rm -f -- "$target"
-                fi
-        done <"$LINK_MANIFEST"
+    [ -f "$LINK_MANIFEST" ] || return 0
+    while IFS=$'\t' read -r target source; do
+        if
+            [[ ! ${MANAGED_TARGETS[$target]+present} ]] &&
+                [ -L "$target" ] &&
+                [ "$(realpath -m -- "$target")" = "$(realpath -m -- "$source")" ]
+        then
+            rm -f -- "$target"
+        fi
+    done <"$LINK_MANIFEST"
 }
 
 if ! command -v stow >/dev/null 2>&1; then
-        printf '%s\n' 'Error: stow is not installed. Please install it first.'
-        printf '%s\n' '  Ubuntu/Debian: sudo apt install stow'
-        printf '%s\n' '  Arch: sudo pacman -S stow'
-        exit 1
+    printf '%s\n' 'Error: stow is not installed. Please install it first.'
+    printf '%s\n' '  Ubuntu/Debian: sudo apt install stow'
+    printf '%s\n' '  Arch: sudo pacman -S stow'
+    exit 1
 fi
 
 if [ ! -d "$REPO_ROOT/machines/$MACHINE" ]; then
-        printf "Error: Machine configuration '%s' not found\n" "$MACHINE" >&2
-        printf '%s\n' 'Available machines:' >&2
-        for machine_dir in "$REPO_ROOT"/machines/*; do
-                [ -d "$machine_dir" ] && printf '  %s\n' "${machine_dir##*/}" >&2
-        done
-        exit 1
+    printf "Error: Machine configuration '%s' not found\n" "$MACHINE" >&2
+    printf '%s\n' 'Available machines:' >&2
+    for machine_dir in "$REPO_ROOT"/machines/*; do
+        [ -d "$machine_dir" ] && printf '  %s\n' "${machine_dir##*/}" >&2
+    done
+    exit 1
 fi
 
 TRANSACTION_DIR=$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-install.XXXXXX")
@@ -334,24 +334,24 @@ STATE_SOURCES=("$NEXT_BACKUP_MANIFEST" "$NEXT_CREATED_MANIFEST" "$NEXT_DIRECTORY
 STATE_TARGETS=("$BACKUP_MANIFEST" "$CREATED_MANIFEST" "$DIRECTORY_MANIFEST" "$LINK_MANIFEST" "$MACHINE_STATE")
 STATE_TEMPORARIES=()
 for i in "${!STATE_TARGETS[@]}"; do
-        STATE_TEMPORARIES+=("$STATE_DIR/.transaction-$TRANSACTION_TOKEN-$i")
+    STATE_TEMPORARIES+=("$STATE_DIR/.transaction-$TRANSACTION_TOKEN-$i")
 done
 mkdir -p -- "$TRANSACTION_DIR/snapshots" "$TRANSACTION_DIR/preflight-home"
 touch -- "$SNAPSHOT_MANIFEST" "$TRANSACTION_BACKUPS" "$NEW_LINK_MANIFEST"
 if [ -f "$BACKUP_MANIFEST" ]; then
-        cp -- "$BACKUP_MANIFEST" "$NEXT_BACKUP_MANIFEST"
+    cp -- "$BACKUP_MANIFEST" "$NEXT_BACKUP_MANIFEST"
 else
-        touch -- "$NEXT_BACKUP_MANIFEST"
+    touch -- "$NEXT_BACKUP_MANIFEST"
 fi
 if [ -f "$CREATED_MANIFEST" ]; then
-        cp -- "$CREATED_MANIFEST" "$NEXT_CREATED_MANIFEST"
+    cp -- "$CREATED_MANIFEST" "$NEXT_CREATED_MANIFEST"
 else
-        touch -- "$NEXT_CREATED_MANIFEST"
+    touch -- "$NEXT_CREATED_MANIFEST"
 fi
 if [ -f "$DIRECTORY_MANIFEST" ]; then
-        cp -- "$DIRECTORY_MANIFEST" "$NEXT_DIRECTORY_MANIFEST"
+    cp -- "$DIRECTORY_MANIFEST" "$NEXT_DIRECTORY_MANIFEST"
 else
-        touch -- "$NEXT_DIRECTORY_MANIFEST"
+    touch -- "$NEXT_DIRECTORY_MANIFEST"
 fi
 printf '%s\n' "$MACHINE" >"$NEXT_MACHINE_STATE"
 trap finish_transaction EXIT
@@ -359,57 +359,57 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 for dir in "${STOW_DIRS[@]}"; do
-        if ! run_stow "$dir" "$TRANSACTION_DIR/preflight-home" --simulate >"$TRANSACTION_DIR/stow-preflight.log" 2>&1; then
-                cat "$TRANSACTION_DIR/stow-preflight.log" >&2
-                exit 1
-        fi
-        run_stow "$dir" "$TRANSACTION_DIR/preflight-home"
+    if ! run_stow "$dir" "$TRANSACTION_DIR/preflight-home" --simulate >"$TRANSACTION_DIR/stow-preflight.log" 2>&1; then
+        cat "$TRANSACTION_DIR/stow-preflight.log" >&2
+        exit 1
+    fi
+    run_stow "$dir" "$TRANSACTION_DIR/preflight-home"
 done
 collect_staged_links
 record_staged_directories
 
 FALLBACK_REMOVALS=()
 for target in "$HOME/.config/hypr/"*.lua; do
-        if is_repo_link "$target" && [ ! -e "$target" ]; then
-                FALLBACK_REMOVALS+=("$target")
-        fi
+    if is_repo_link "$target" && [ ! -e "$target" ]; then
+        FALLBACK_REMOVALS+=("$target")
+    fi
 done
 
 for target in "$BACKUP_MANIFEST" "$CREATED_MANIFEST" "$DIRECTORY_MANIFEST" "$LINK_MANIFEST" "$MACHINE_STATE"; do
-        snapshot_path "$target"
+    snapshot_path "$target"
 done
 for target in "${STATE_TEMPORARIES[@]}"; do
-        if [ -e "$target" ] || [ -L "$target" ]; then
-                printf 'Error: State transaction path already exists: %s\n' "$target" >&2
-                exit 1
-        fi
-        snapshot_path "$target"
+    if [ -e "$target" ] || [ -L "$target" ]; then
+        printf 'Error: State transaction path already exists: %s\n' "$target" >&2
+        exit 1
+    fi
+    snapshot_path "$target"
 done
 while IFS=$'\t' read -r target _; do
-        [ -n "$target" ] && snapshot_path "$target"
+    [ -n "$target" ] && snapshot_path "$target"
 done <"$NEW_LINK_MANIFEST"
 if [ -f "$LINK_MANIFEST" ]; then
-        while IFS=$'\t' read -r target _; do
-                if [ -n "$target" ]; then
-                        validate_target "$target"
-                        snapshot_path "$target"
-                fi
-        done <"$LINK_MANIFEST"
+    while IFS=$'\t' read -r target _; do
+        if [ -n "$target" ]; then
+            validate_target "$target"
+            snapshot_path "$target"
+        fi
+    done <"$LINK_MANIFEST"
 fi
 for target in "${FALLBACK_REMOVALS[@]}"; do
-        snapshot_path "$target"
+    snapshot_path "$target"
 done
 
 TRANSACTION_ACTIVE=1
 prepare_stow_targets
 for dir in "${STOW_DIRS[@]}"; do
-        stow_from "$dir"
+    stow_from "$dir"
 done
 
 remove_obsolete_links
 
 for target in "${FALLBACK_REMOVALS[@]}"; do
-        is_repo_link "$target" && [ ! -e "$target" ] && rm -f -- "$target"
+    is_repo_link "$target" && [ ! -e "$target" ] && rm -f -- "$target"
 done
 
 finalize_created_hashes
@@ -418,12 +418,12 @@ finalize_backup_hashes
 mkdir -p -- "$STATE_DIR"
 record_created_directories
 for i in "${!STATE_SOURCES[@]}"; do
-        temporary=${STATE_TEMPORARIES[$i]}
-        cp -- "${STATE_SOURCES[$i]}" "$temporary"
-        mv -T -- "$temporary" "${STATE_TARGETS[$i]}"
+    temporary=${STATE_TEMPORARIES[$i]}
+    cp -- "${STATE_SOURCES[$i]}" "$temporary"
+    mv -T -- "$temporary" "${STATE_TARGETS[$i]}"
 done
 TRANSACTION_ACTIVE=0
 
 if command -v tmux >/dev/null 2>&1 && tmux list-sessions >/dev/null 2>&1; then
-        tmux source-file "$HOME/.config/tmux/tmux.conf" || printf '%s\n' 'Warning: installed configs but could not reload tmux' >&2
+    tmux source-file "$HOME/.config/tmux/tmux.conf" || printf '%s\n' 'Warning: installed configs but could not reload tmux' >&2
 fi

@@ -1,4 +1,3 @@
-export NVIM_APPNAME=jc-nvim
 [[ $- == *i* ]] || return
 
 if [[ ${TERM:-} != dumb ]] && command -v starship >/dev/null 2>&1; then
@@ -8,8 +7,8 @@ else
 fi
 
 case ":$PATH:" in
-    *":$HOME/.local/bin:"*) ;;
-    *) PATH="${PATH:+$PATH:}$HOME/.local/bin" ;;
+*":$HOME/.local/bin:"*) ;;
+*) PATH="${PATH:+$PATH:}$HOME/.local/bin" ;;
 esac
 export PATH
 if command -v zoxide >/dev/null 2>&1; then
