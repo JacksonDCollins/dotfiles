@@ -11,9 +11,6 @@ case ":$PATH:" in
 *) PATH="${PATH:+$PATH:}$HOME/.local/bin" ;;
 esac
 export PATH
-if command -v zoxide >/dev/null 2>&1; then
-    eval "$(zoxide init --cmd cd bash)"
-fi
 shopt -s dotglob
 export DOTFILES="$HOME/dotfiles"
 if [[ -d $HOME/tmux-bins/tsm/bin && ":$PATH:" != *":$HOME/tmux-bins/tsm/bin:"* ]]; then
@@ -26,4 +23,8 @@ fi
 # mise owns language runtimes, including Rust; do not override it with ~/.cargo/env.
 if command -v mise >/dev/null 2>&1; then
     eval "$(mise activate bash)"
+fi
+# Initialize last so mise cannot replace zoxide's cd function.
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init --cmd cd bash)"
 fi
