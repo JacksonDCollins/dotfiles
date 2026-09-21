@@ -1,9 +1,9 @@
 -- Native Hyprland bindings: no Omarchy helpers or commands.
-hl.bind("SUPER + Return", hl.dsp.exec_cmd("foot"))
+hl.bind("SUPER + Return", hl.dsp.exec_cmd("uwsm app -- foot"))
 hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + F", hl.dsp.window.fullscreen())
-hl.bind("SUPER + SHIFT + M", hl.dsp.exit())
+hl.bind("SUPER + SHIFT + M", hl.dsp.exec_cmd("uwsm stop"))
 hl.bind("SUPER + ALT + L", hl.dsp.layout("togglesplit"))
 
 hl.bind("SUPER + H", hl.dsp.focus({ workspace = "m-1" }))

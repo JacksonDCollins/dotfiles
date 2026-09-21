@@ -10,6 +10,13 @@ export OMARCHY_PATH="$tmp/no-omarchy"
 unset WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE TMUX
 mkdir -p "$HOME/.config/hypr" "$XDG_RUNTIME_DIR" "$TMUX_TMPDIR"
 chmod 700 "$XDG_RUNTIME_DIR"
+# Session lifecycle stays outside Hyprland; applications and logout use UWSM.
+! grep -q 'hyprpolkitagent.service' "$repo/linux/hypr/.config/hypr/hyprland.lua"
+grep -q 'uwsm app -- foot' "$repo/linux/hypr/.config/hypr/dotfiles/bindings.lua"
+grep -q 'uwsm stop' "$repo/linux/hypr/.config/hypr/dotfiles/bindings.lua"
+! grep -q 'hl.dsp.exit' "$repo/linux/hypr/.config/hypr/dotfiles/bindings.lua"
+grep -q 'uwsm app -- firefox' "$repo/machines/work/hypr/.config/hypr/dotfiles/bindings_machine.lua"
+grep -q 'uwsm app -- betterbird' "$repo/machines/work/hypr/.config/hypr/dotfiles/bindings_machine.lua"
 configs=(.bashrc .config/foot/foot.ini .config/tmux/tmux.conf .config/hypr/hyprland.lua)
 for config in "${configs[@]}"; do
     mkdir -p "$(dirname "$HOME/$config")"

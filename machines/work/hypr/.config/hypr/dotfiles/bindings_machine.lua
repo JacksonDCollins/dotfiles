@@ -1,8 +1,8 @@
 hl.unbind("SUPER + ALT + B")
-hl.bind("SUPER + ALT + B", hl.dsp.exec_cmd("firefox"))
+hl.bind("SUPER + ALT + B", hl.dsp.exec_cmd("uwsm app -- firefox"))
 
 hl.unbind("SUPER + SHIFT + E")
-hl.bind("SUPER + SHIFT + E", hl.dsp.exec_cmd("betterbird"))
+hl.bind("SUPER + SHIFT + E", hl.dsp.exec_cmd("uwsm app -- betterbird"))
 
 -- Match monitors.lua: each monitor owns workspaces index and index + 4.
 local monitors = require("monitors")

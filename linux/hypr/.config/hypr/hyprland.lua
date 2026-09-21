@@ -5,6 +5,9 @@ hl.config({
   decoration = { rounding = 8 },
 })
 
+-- UWSM manages the graphical session and systemd user services.
+-- Hyprcachy enables hyprpolkitagent; no service autostart is needed here.
+
 -- A profile may provide monitors.lua and extra bindings; default needs neither.
 local config = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config") .. "/hypr/"
 -- Hyprland resolves the Stow symlink; search HOME so profile modules are visible.

@@ -13,7 +13,19 @@ not Omarchy's helpers. Older Hyprland releases without Lua configuration support
 are not supported by these configs. Run `Hyprland --version` to check your version.
 
 - Install `hyprland` and `foot`; use `ttf-jetbrains-mono-nerd` for the configured font.
-- Start Hyprland using your distro's normal session launcher (`start-hyprland`).
+- Install `uwsm`; Hyprcachy's greetd launches
+  `uwsm start -e -D Hyprland hyprland.desktop` (the packaged UWSM session command).
+- Install `hyprpolkitagent`; Hyprcachy enables its systemd user service globally.
+  UWSM activates `graphical-session.target`, which starts the agent and stops it
+  on logout. There is no authentication-agent startup hook in Hyprland.
+  Outside Hyprcachy, enable it once with `systemctl --user enable hyprpolkitagent.service`.
+- Application bindings use `uwsm app --`; logout uses `uwsm stop` so systemd
+  can shut down session applications/services in order. Do not use the native
+  compositor exit command when running under UWSM.
+- Hyprcachy also installs Mako (D-Bus-activated notifications), PipeWire with
+  WirePlumber and PulseAudio/ALSA compatibility, Hyprland/GTK portals, Qt 5/6
+  Wayland support, and Noto fonts. Use the packaged service/portal defaults;
+  do not launch duplicate daemons from the config.
 - Super+Return: terminal; Super+Q: close window; Super+V: float; Super+F: fullscreen.
 - Super+Shift+M: exit session; Super+Alt+L: toggle the dwindle split direction.
 - Super+arrows: window focus; Super+number: workspace; add Shift to move a window.
