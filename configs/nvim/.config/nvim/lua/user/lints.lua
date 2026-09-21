@@ -35,7 +35,3 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWritePost', 'InsertLeave' }, {
     end
   end,
 })
-
-require('mason-nvim-lint').setup {
-  quiet_mode = false,
-}

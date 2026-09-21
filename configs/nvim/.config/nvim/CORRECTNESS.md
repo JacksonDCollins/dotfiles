@@ -24,7 +24,7 @@ Host-level tool availability is intentionally out of scope.
 - [x] Make document-highlight autocmds buffer-local, idempotent, and aware of remaining clients.
 - [x] Toggle inlay hints only in the attached buffer.
 - [x] Remove forced duplicate LSP shutdown and rely on Neovim's native graceful exit handler.
-- [x] Replace the obsolete `LspRestart` Mason callback with native Neovim 0.12 behavior and package-to-server mapping.
+- [x] Remove editor-side tool installation/restart callbacks; setup installs tools before Neovim enables servers.
 - [x] Validate malformed project LSP structures without aborting all LSP setup.
 
 ## Treesitter And Linting

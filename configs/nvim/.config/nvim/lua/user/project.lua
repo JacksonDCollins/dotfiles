@@ -71,33 +71,33 @@ local function notify_invalid(project_file, message)
   vim.notify(('Invalid project config in %s: %s'):format(project_file, message), vim.log.levels.ERROR)
 end
 
-local function validate_servers(project_file, source, servers)
+local function validate_servers(project_file, servers)
   if servers == nil then
     return {}
   end
   if not is_object(servers) then
-    notify_invalid(project_file, ('lsp.%s must be an object'):format(source))
+    notify_invalid(project_file, 'lsp must be an object')
     return {}
   end
 
   local validated = {}
   for server, config in pairs(servers) do
     if server == '' or server:find('*', 1, true) then
-      notify_invalid(project_file, ('lsp.%s contains an invalid server name %q'):format(source, server))
+      notify_invalid(project_file, ('lsp contains an invalid server name %q'):format(server))
     elseif config == false then
       validated[server] = false
     elseif not is_object(config) then
-      notify_invalid(project_file, ('lsp.%s.%s must be an object or false'):format(source, server))
+      notify_invalid(project_file, ('lsp.%s must be an object or false'):format(server))
     else
       local safe_config = {}
       for field, value in pairs(config) do
         local field_config = allowed_fields[field]
         if not field_config then
-          notify_invalid(project_file, ('ignored lsp.%s.%s.%s: field is not allowed'):format(source, server, field))
+          notify_invalid(project_file, ('ignored lsp.%s.%s: field is not allowed'):format(server, field))
         elseif not field_config[1](value) then
           notify_invalid(
             project_file,
-            ('ignored lsp.%s.%s.%s: expected %s'):format(source, server, field, field_config[2])
+            ('ignored lsp.%s.%s: expected %s'):format(server, field, field_config[2])
           )
         else
           safe_config[field] = value
@@ -150,20 +150,7 @@ function M.read(start_path)
   end
 
   if project.lsp ~= nil then
-    if not is_object(project.lsp) then
-      notify_invalid(project_file, 'lsp must be an object')
-      project.lsp = nil
-    else
-      for field in pairs(project.lsp) do
-        if field ~= 'mason' and field ~= 'others' then
-          notify_invalid(project_file, ('ignored lsp.%s: unknown fields are not allowed'):format(field))
-        end
-      end
-      project.lsp = {
-        mason = validate_servers(project_file, 'mason', project.lsp.mason),
-        others = validate_servers(project_file, 'others', project.lsp.others),
-      }
-    end
+    project.lsp = validate_servers(project_file, project.lsp)
   end
 
   return project

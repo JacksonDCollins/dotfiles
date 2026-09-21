@@ -1,4 +1,3 @@
-require('mason').setup()
 local document_highlight_method = vim.lsp.protocol.Methods.textDocument_documentHighlight
 local highlight_augroup = vim.api.nvim_create_augroup('lsp-highlight', { clear = true })
 
@@ -99,15 +98,7 @@ vim.diagnostic.config {
   },
 }
 
-require('mason-lspconfig').setup {
-  ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-  automatic_enable = false, -- automatically run vim.lsp.enable() for all servers that are installed via Mason
-}
-
----@class LspServersConfig
----@field mason table<string, any> config for language servers that are installed via Mason
----@field others table<string, any> config for language servers that are *not* installed via
-
+-- Executables are installed by dotfiles setup and resolved through mise shims.
 vim.api.nvim_create_autocmd('VimEnter', {
   group = vim.api.nvim_create_augroup('lsp-vim-enter', { clear = true }),
   callback = function(event)
@@ -118,104 +109,48 @@ vim.api.nvim_create_autocmd('VimEnter', {
       start_path = stat and stat.type == 'directory' and buffer_path or vim.fs.dirname(buffer_path)
     end
 
-    ---@type LspServersConfig
-    local project_vals = require('user.project').read(start_path).lsp or { mason = {}, others = {} }
-
-    ---@type LspServersConfig
-    local config_servers = {
-      mason = {
-        -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-        clangd = {
-          cmd = {
-            'clangd',
-            '--background-index',
-            '--clang-tidy',
-            '--header-insertion=iwyu',
-            '--completion-style=detailed',
-            '--function-arg-placeholders',
-            '--fallback-style=llvm',
-            '--query-driver=/usr/bin/x86_64-w64-mingw32-g++',
-          },
-        },
-        gopls = {},
-        rust_analyzer = {},
-        ts_ls = {},
-        phpactor = {
-          root_markers = { '.phpactor.json', '.phpactor.yml', 'composer.json', '.git' },
-        },
-        zls = {},
-        lua_ls = {
-          settings = {
-            Lua = {
-              completion = {
-                callSnippet = 'Replace',
-              },
-            },
-          },
+    local project_vals = require('user.project').read(start_path).lsp or {}
+    local servers = {
+      clangd = {
+        cmd = {
+          'clangd',
+          '--background-index',
+          '--clang-tidy',
+          '--header-insertion=iwyu',
+          '--completion-style=detailed',
+          '--function-arg-placeholders',
+          '--fallback-style=llvm',
+          '--query-driver=/usr/bin/x86_64-w64-mingw32-g++',
         },
       },
-      -- This table contains config for all language servers that are *not* installed via Mason.
-      -- Structure is identical to the mason table from above.
-      others = {
-        dartls = {},
+      gopls = {},
+      rust_analyzer = {},
+      ts_ls = {},
+      phpactor = {
+        root_markers = { '.phpactor.json', '.phpactor.yml', 'composer.json', '.git' },
       },
+      zls = {},
+      lua_ls = {
+        settings = { Lua = { completion = { callSnippet = 'Replace' } } },
+      },
+      dartls = {},
     }
-    local servers = vim.deepcopy(config_servers)
-    for source, overrides in pairs(project_vals) do
-      for server, config in pairs(overrides) do
-        if config == false then
-          servers[source][server] = nil
-        else
-          servers[source][server] = vim.tbl_deep_extend('force', servers[source][server] or {}, config)
-        end
+    for server, config in pairs(project_vals) do
+      if config == false then
+        servers[server] = nil
+      else
+        servers[server] = vim.tbl_deep_extend('force', servers[server] or {}, config)
       end
     end
 
-    local ensure_installed = vim.tbl_keys(servers.mason)
-    local all_servers = vim.tbl_extend('keep', servers.mason, servers.others)
-
-    local formatter_tools =
-      vim.list.unique(vim.iter(vim.tbl_values(require('conform').formatters_by_ft or {})):flatten():totable())
-    vim.list_extend(
-      ensure_installed,
-      vim.tbl_map(function(tool)
-        return {
-          tool,
-          condition = function()
-            return vim.tbl_contains(require('mason-registry').get_all_package_names(), tool)
-          end,
-        }
-      end, formatter_tools)
-    )
-    require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-    vim.api.nvim_create_autocmd('User', {
-      pattern = 'MasonToolsUpdateCompleted',
-      group = vim.api.nvim_create_augroup('lsp-mason-tools-update', { clear = true }),
-      callback = function(e)
-        local package_to_server = require('mason-lspconfig').get_mappings().package_to_lspconfig
-        local handled = {}
-        for _, package in ipairs(e.data or {}) do
-          local server = package_to_server[package]
-          if server and all_servers[server] and not handled[server] then
-            handled[server] = true
-            local has_active_clients = #vim.lsp.get_clients { name = server } > 0
-            pcall(vim.lsp.enable, server)
-            if has_active_clients then
-              pcall(vim.api.nvim_cmd, { cmd = 'lsp', args = { 'restart', server } }, {})
-            end
-          end
-        end
-      end,
-    })
-
-    for server, config in pairs(all_servers) do
+    for server, config in pairs(servers) do
       if not vim.tbl_isempty(config) then
         vim.lsp.config(server, config)
       end
     end
 
-    if not vim.tbl_isempty(all_servers) then
-      vim.lsp.enable(vim.tbl_keys(all_servers))
+    if not vim.tbl_isempty(servers) then
+      vim.lsp.enable(vim.tbl_keys(servers))
     end
   end,
 })

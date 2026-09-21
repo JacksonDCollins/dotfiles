@@ -11,3 +11,16 @@ wl-clipboard
 ripgrep
 fd
 base-devel
+mise
+unzip
+luacheck
+re2c
+libxml2
+openssl
+icu
+oniguruma
+curl
+sqlite
+gd
+readline
+zlib

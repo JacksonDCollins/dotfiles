@@ -251,7 +251,7 @@ its diff, u unstages it, gq closes. Here s is STAGE; g? shows local keys.
 Git actions are real: do not use X (discard), amend, reset, or push as drills.
 
 REFERENCE ONLY: <Space>R restarts Neovim; <Space>ps updates plugins.
-Do not run either just to pass a lesson. :Mason manages external tools;
+Do not run either just to pass a lesson. Dotfiles setup installs external tools;
 :ConformInfo explains formatting; :checkhealth reports setup issues.
 Native gcc/gc{motion}/Visual gc comments code; gqq may invoke LSP format,
 whereas gw reflows text without formatexpr. No custom Gitsigns hunk keys

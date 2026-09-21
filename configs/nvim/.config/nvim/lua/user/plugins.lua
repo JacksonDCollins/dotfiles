@@ -15,12 +15,7 @@ vim.pack.add {
   { src = 'https://github.com/nvim-treesitter/nvim-treesitter', version = 'main' },
   { src = 'https://github.com/nvim-treesitter/nvim-treesitter-textobjects', version = 'main' },
   { src = 'https://github.com/nvim-treesitter/nvim-treesitter-context' },
-  { src = 'https://github.com/ellisonleao/glow.nvim' },
   { src = 'https://github.com/mfussenegger/nvim-lint' },
-  { src = 'https://github.com/rshkarin/mason-nvim-lint' },
-  { src = 'https://github.com/mason-org/mason.nvim' },
-  { src = 'https://github.com/mason-org/mason-lspconfig.nvim' },
-  { src = 'https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim' },
   { src = 'https://github.com/neovim/nvim-lspconfig' },
   { src = 'https://github.com/prichrd/netrw.nvim' },
   { src = 'https://github.com/kylechui/nvim-surround' },
@@ -386,11 +381,6 @@ vim.keymap.set('n', 's', '<Plug>(nvim-surround-normal)', { desc = 'Surround in n
 
 require('nvim-autopairs').setup {
   check_ts = true,
-}
-
----@diagnostic disable-next-line: undefined-field
-require('glow').setup {
-  border = 'rounded',
 }
 
 require('tabout').setup {

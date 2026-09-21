@@ -23,6 +23,7 @@ alias vimdiff='nvim -d'
 if command -v fastfetch >/dev/null 2>&1; then
     fastfetch
 fi
-if [[ -f "$HOME/.cargo/env" ]]; then
-    source "$HOME/.cargo/env"
+# mise owns language runtimes, including Rust; do not override it with ~/.cargo/env.
+if command -v mise >/dev/null 2>&1; then
+    eval "$(mise activate bash)"
 fi

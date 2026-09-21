@@ -19,3 +19,4 @@ if ! pacman -Q -- stow "${packages[@]}" >/dev/null 2>&1; then
     sudo pacman -Syu --needed -- stow "${packages[@]}"
 fi
 bash "$repo/install.sh" "$profile"
+bash "$repo/install-runtimes.sh"
