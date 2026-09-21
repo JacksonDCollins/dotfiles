@@ -131,6 +131,9 @@ vim.api.nvim_create_autocmd('VimEnter', {
         settings = { Lua = { completion = { callSnippet = 'Replace' } } },
       },
       dartls = {},
+      qmlls = {
+        cmd = { 'qmlls6' },
+      },
     }
     for server, config in pairs(project_vals) do
       if config == false then

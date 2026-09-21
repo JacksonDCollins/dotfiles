@@ -1,5 +1,5 @@
 -- Standalone configuration for Hyprland's native Lua API (tested with 0.56.2).
-hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
+hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
 hl.config({
 	general = { gaps_in = 5, gaps_out = 10, border_size = 2, layout = "dwindle" },
 	decoration = { rounding = 8 },
