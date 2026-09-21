@@ -126,9 +126,6 @@ vim.api.nvim_create_autocmd('VimEnter', {
       gopls = {},
       rust_analyzer = {},
       ts_ls = {},
-      phpactor = {
-        root_markers = { '.phpactor.json', '.phpactor.yml', 'composer.json', '.git' },
-      },
       zls = {},
       lua_ls = {
         settings = { Lua = { completion = { callSnippet = 'Replace' } } },

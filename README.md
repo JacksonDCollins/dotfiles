@@ -33,16 +33,14 @@ config/runtime installation sequence; Hyprcachy never executes dotfiles scripts 
 ## mise runtimes and editor tools
 
 `configs/mise/.config/mise/config.toml` is the version source for Node (including
-npm), Python (including venv/pip), Go, PHP, Rust, Zig, Dart, tree-sitter, and the
+npm), Python (including venv/pip), Go, Rust, Zig, Dart, tree-sitter, and the
 configured language servers, formatters, and linters. Rust includes `rustfmt`,
 `rust-src`, and `rust-analyzer`; Dart supplies its own language server. Neovim
 uses nvim-lspconfig, Conform, and nvim-lint to run tools, without Mason plugins
 or tool-install hooks. Luacheck comes from pacman (mise has no LuaRocks backend),
 as does unzip. The clangd download targets Linux x86-64.
 
-The PHP mise backend compiles from source, so `packages-arch.txt` includes its
-build libraries (re2c, libxml2, OpenSSL, ICU, Oniguruma, curl, SQLite, GD, readline,
-and zlib, plus base-devel). Initial setup needs internet and can take several minutes.
+Initial setup needs internet and can take several minutes.
 
 Runtime installation is explicit setup work, never a shell/editor startup hook.
 After configs are installed, rerun `bash install-runtimes.sh` to install missing
@@ -54,8 +52,7 @@ Pinning means `node = "24.21.0"`, not `node = "latest"`: setup does not silently
 upgrade it when a new release appears. To upgrade, edit the tracked config's exact
 version and rerun `install-runtimes.sh`. These are selected published versions,
 not a claim that every toolchain has been integration-tested. Zig and ZLS share
-`vars.zig_version`; PHPCS and PHPCBF share `vars.phpcs_version`, so each pair is
-updated in one place.
+`vars.zig_version`, so the pair is updated in one place.
 Project `mise.toml` files can override these global defaults; install/trust project
 tools explicitly. Restart Neovim/LSP clients after changing runtime versions.
 Uninstalling dotfiles restores configs but does not delete downloaded tools or

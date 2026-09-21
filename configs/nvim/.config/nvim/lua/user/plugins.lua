@@ -97,7 +97,6 @@ require('conform').setup {
   end,
   formatters_by_ft = {
     lua = { 'stylua' },
-    php = { 'phpcbf' },
     go = { 'gofumpt', 'goimports' },
     rust = { 'rustfmt' },
     sh = { 'shfmt' },
@@ -177,7 +176,6 @@ local ensure_installed = {
   'query',
   'vim',
   'vimdoc',
-  'php',
   'python',
   'javascript',
   'typescript',

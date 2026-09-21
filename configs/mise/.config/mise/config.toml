@@ -2,17 +2,11 @@
 # Project mise.toml files can override these global defaults.
 [vars]
 zig_version = "0.16.0" # Zig and ZLS share one compatible release.
-phpcs_version = "4.0.4" # PHPCS and PHPCBF come from the same release.
-
-[tool_alias]
-phpcs = "github:PHPCSStandards/PHP_CodeSniffer"
-phpcbf = "github:PHPCSStandards/PHP_CodeSniffer"
 
 [tools]
 node = "24.21.0"
 python = "3.13.15"
 go = "1.27.1"
-"vfox:jdx/vfox-php" = "8.4.25"
 rust = { version = "1.98.1", profile = "minimal", components = ["rustfmt", "rust-src", "rust-analyzer"] }
 zig = "{{ vars.zig_version }}"
 dart = "3.13.4" # Includes the Dart language server.
@@ -23,14 +17,11 @@ dart = "3.13.4" # Includes the Dart language server.
 "go:golang.org/x/tools/gopls" = "0.23.0"
 "npm:typescript" = "6.0.3"
 "npm:typescript-language-server" = "6.0.0"
-"github:phpactor/phpactor" = { version = "2026.07.22.0", asset_pattern = "phpactor.phar", bin = "phpactor" }
 zls = "{{ vars.zig_version }}"
 lua-language-server = "3.19.1"
 
 # Formatters and linters (rustfmt comes from the Rust toolchain).
 stylua = "2.5.2"
-phpcs = { version = "{{ vars.phpcs_version }}", asset_pattern = "phpcs.phar", bin = "phpcs" }
-phpcbf = { version = "{{ vars.phpcs_version }}", asset_pattern = "phpcbf.phar", bin = "phpcbf" }
 gofumpt = "0.12.0"
 "go:golang.org/x/tools/cmd/goimports" = "0.50.0"
 shfmt = "3.14.1"

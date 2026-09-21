@@ -64,7 +64,7 @@ In native Tutor, Enter/double-click follow links; do not use its >> command inje
 - Server operations need an attached supporting server; plain Tutor buffers may have none.
 - n `Space f`: Conform asynchronous WHOLE-buffer format, with LSP fallback; not a range key.
 - Saving autoformats with a 500 ms timeout/LSP fallback, except C/C++ skip format-on-save.
-- Formatters: stylua, phpcbf, gofumpt + goimports, rustfmt, shfmt, black, prettierd by filetype.
+- Formatters: stylua, gofumpt + goimports, rustfmt, shfmt, black, prettierd by filetype.
 - Help: [LSP defaults](lsp-defaults), [diagnostics](diagnostic-defaults), [formatting](conform).
 
 ## Telescope Launchers *jc-ref-search*

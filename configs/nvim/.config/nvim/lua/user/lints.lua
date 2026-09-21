@@ -4,7 +4,6 @@ lint.linters_by_ft = {
   python = { 'ruff' },
   sh = { 'shellcheck' },
   lua = { 'luacheck' },
-  php = { 'phpcs' },
 }
 
 local luacheck = lint.linters.luacheck
