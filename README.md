@@ -23,6 +23,7 @@ independently of Hyprcachy:
 - Bash: Starship, Fastfetch, and Zoxide (also used by the tmux session picker).
 - Tmux session picker: fzf.
 - Foot/editor appearance: JetBrains Mono Nerd Font.
+- Quickshell symbols: `ttf-material-symbols-variable` (Material Symbols Rounded).
 - Editor clipboard/search/build support: wl-clipboard, ripgrep, fd, and base-devel.
 
 Hyprcachy installs the OS/desktop infrastructure plus Git and Stow, clones/updates this
@@ -122,21 +123,37 @@ Reapply dotfiles to install these settings, then reopen Neovim and Foot. The
 installer reloads tmux if running; logging out and back in applies the desktop
 and notification settings without manually restarting individual services.
 
-## Quickshell wallpaper
+## Quickshell
 
-`configs/quickshell` installs a wallpaper-only shell, with one background window
-per monitor. It loads `~/.config/theme/desktop.json`; change its `wallpaper` filename
-to select another image in the theme bundle. It does not take input focus or
-reserve screen space.
+`configs/quickshell` installs the wallpaper and bar on each monitor. It loads
+`~/.config/theme/desktop.json`; change its `wallpaper` filename to select another
+image in the theme bundle. The wallpaper does not take input focus or reserve
+screen space.
 
 Stow also installs `quickshell.service` and its `graphical-session.target.wants`
 link. UWSM starts and stops it with the graphical session. After updating dotfiles
 in an already running session, use `systemctl --user daemon-reload` followed by
-`systemctl --user start quickshell.service`, or log out and back in.
+`systemctl --user restart quickshell.service`, or log out and back in.
 
-There is no standalone bar yet. Add future widgets to this same shell rather
-than launching another copy. The archived Omarchy widget under `deprecated/`
-is not installed. Mako continues to provide notifications.
+Add future widgets to this same shell rather than launching another copy. The
+archived Omarchy widget under `deprecated/` is not installed. Mako continues to
+provide notifications.
+
+Shell-owned icons use Material Symbols Rounded through `Theme.iconFont`, configured
+in `desktop.json` (`font.iconFamily` and `font.iconPixelSize`). Use symbol names such
+as `play_arrow`, `pause`, and `chevron_right` in `MaterialIcon` items, which use native
+font rendering to avoid distance-field artifacts. Keep normal labels on
+`Theme.font`/`Theme.smallFont`. App-provided tray icons and artwork are
+unchanged. The package manifest installs the font through the existing setup flow;
+configuration-only installs on other systems need the font installed separately.
+
+### QML editor support
+
+The `qmldir` beside `shell.qml` registers components and singletons for both
+Quickshell and the host's `qmlls6`, without machine-specific generated paths.
+Register each new component there, for example `Workspaces 1.0 Workspaces.qml`.
+Prefix singleton entries with `singleton`. Restart the editor's QML language
+server after switching back from generated `.qmlls.ini` metadata.
 
 The OpenRouter usage script and its service/timer/path units have been removed.
 For an older installation, disable the old units before removing their files:

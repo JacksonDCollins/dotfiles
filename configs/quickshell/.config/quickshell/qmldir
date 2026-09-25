@@ -1,0 +1,15 @@
+singleton Theme 1.0 Theme.qml
+singleton Time 1.0 Time.qml
+singleton Media 1.0 Media.qml
+Bar 1.0 Bar.qml
+ClockWidget 1.0 ClockWidget.qml
+Wallpaper 1.0 Wallpaper.qml
+Workspaces 1.0 Workspaces.qml
+CalendarWidget 1.0 CalendarWidget.qml
+SystemTrayWidget 1.0 SystemTrayWidget.qml
+TrayMenu 1.0 TrayMenu.qml
+PlayerWidget 1.0 PlayerWidget.qml
+PlayerBarWidget 1.0 PlayerBarWidget.qml
+TrackMetadata 1.0 TrackMetadata.qml
+MaterialIcon 1.0 MaterialIcon.qml
+MediaSeekBar 1.0 MediaSeekBar.qml

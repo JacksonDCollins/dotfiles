@@ -1,4 +1,77 @@
 {
+  "name": "Catppuccin Mocha",
+  "wallpaper": "wallpaper.jpeg",
   "background": "#1e1e2e",
-  "wallpaper": "wallpaper.jpeg"
+  "foreground": "#cdd6f4",
+  "surface": "#313244",
+  "surfaceHover": "#45475a",
+  "surfacePressed": "#585b70",
+  "muted": "#a6adc8",
+  "accent": "#cba6f7",
+  "onAccent": "#1e1e2e",
+  "border": "#45475a",
+  "focusBorder": "#cba6f7",
+  "selectionBackground": "#45475a",
+  "selectionForeground": "#cdd6f4",
+  "success": "#a6e3a1",
+  "warning": "#f9e2af",
+  "error": "#f38ba8",
+  "info": "#89b4fa",
+  "font": {
+    "family": "JetBrainsMono Nerd Font",
+    "pixelSize": 12,
+    "smallPixelSize": 10,
+    "largePixelSize": 16,
+    "iconFamily": "Material Symbols Rounded",
+    "iconPixelSize": 24
+  },
+  "spacing": {
+    "small": 4,
+    "medium": 8,
+    "large": 12,
+    "extraLarge": 16
+  },
+  "radius": {
+    "small": 4,
+    "medium": 8,
+    "large": 12
+  },
+  "bar": {
+    "background": "transparent",
+    "height": 30,
+    "padding": 8,
+    "spacing": 8
+  },
+  "widget": {
+    "padding": 10,
+    "borderWidth": 1
+  },
+  "palette": {
+    "rosewater": "#f5e0dc",
+    "flamingo": "#f2cdcd",
+    "pink": "#f5c2e7",
+    "mauve": "#cba6f7",
+    "red": "#f38ba8",
+    "maroon": "#eba0ac",
+    "peach": "#fab387",
+    "yellow": "#f9e2af",
+    "green": "#a6e3a1",
+    "teal": "#94e2d5",
+    "sky": "#89dceb",
+    "sapphire": "#74c7ec",
+    "blue": "#89b4fa",
+    "lavender": "#b4befe",
+    "text": "#cdd6f4",
+    "subtext1": "#bac2de",
+    "subtext0": "#a6adc8",
+    "overlay2": "#9399b2",
+    "overlay1": "#7f849c",
+    "overlay0": "#6c7086",
+    "surface2": "#585b70",
+    "surface1": "#45475a",
+    "surface0": "#313244",
+    "base": "#1e1e2e",
+    "mantle": "#181825",
+    "crust": "#11111b"
+  }
 }

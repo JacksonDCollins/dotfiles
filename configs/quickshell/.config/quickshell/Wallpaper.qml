@@ -1,27 +1,18 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
 
 Scope {
     id: root
-    readonly property string themeDir: Quickshell.env("HOME") + "/.config/theme"
-    readonly property var theme: JSON.parse(themeFile.text())
-
-    FileView {
-        id: themeFile
-        path: root.themeDir + "/desktop.json"
-        blockLoading: true
-    }
 
     Variants {
         model: Quickshell.screens
 
-        PanelWindow {
+        delegate: PanelWindow {
             required property var modelData
             screen: modelData
-            color: root.theme.background
+            color: Theme.background
             anchors {
                 top: true
                 bottom: true
@@ -36,7 +27,7 @@ Scope {
 
             Image {
                 anchors.fill: parent
-                source: "file://" + root.themeDir + "/" + root.theme.wallpaper
+                source: Theme.wallpaperFilePath
                 fillMode: Image.PreserveAspectCrop
             }
         }
