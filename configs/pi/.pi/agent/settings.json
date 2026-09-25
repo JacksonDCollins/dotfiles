@@ -1,0 +1,20 @@
+{
+  "theme": "catppuccin-mocha",
+  "themes": ["~/.config/theme/pi.json"],
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "tuiMode": "fullscreen",
+  "packages": [
+    "npm:pi-web-access",
+    "npm:pi-subagents",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:context-mode",
+    "npm:pi-lens",
+    "npm:@dietrichgebert/ponytail",
+    "npm:pi-mcp-adapter",
+    "npm:pi-token-meter",
+    "npm:@narumitw/pi-usage"
+  ],
+  "hideThinkingBlock": true
+}

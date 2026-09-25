@@ -7,3 +7,8 @@ command -v mise >/dev/null || { echo 'Install mise first (or run setup.sh).' >&2
 # Ignore the caller's project directory; install the user's global defaults.
 mise --cd "$HOME" install --yes
 mise --cd "$HOME" reshim
+
+# Reconcile personal Pi packages using Pi's own package manager. Do not update
+# the mise-pinned Pi binary or trust/install packages from the caller's project.
+[[ -f "$HOME/.pi/agent/settings.json" ]] || { echo 'Apply the Pi config with install.sh first.' >&2; exit 1; }
+PI_CODING_AGENT_DIR="$HOME/.pi/agent" mise --cd "$HOME" exec -- pi update --extensions --no-approve

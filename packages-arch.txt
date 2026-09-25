@@ -11,6 +11,7 @@ ttf-material-symbols-variable
 wl-clipboard
 ripgrep
 fd
+git-delta
 base-devel
 mise
 unzip

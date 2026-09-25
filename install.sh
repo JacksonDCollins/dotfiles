@@ -400,6 +400,10 @@ for target in "${FALLBACK_REMOVALS[@]}"; do
     snapshot_path "$target"
 done
 
+# Git writes --global settings to its XDG config if ~/.gitconfig is absent.
+# Snapshot for rollback, but leave this user-owned identity file on uninstall.
+snapshot_path "$HOME/.gitconfig"
+
 TRANSACTION_ACTIVE=1
 prepare_stow_targets
 for dir in "${STOW_DIRS[@]}"; do
@@ -407,6 +411,10 @@ for dir in "${STOW_DIRS[@]}"; do
 done
 
 remove_obsolete_links
+
+if [ ! -e "$HOME/.gitconfig" ] && [ ! -L "$HOME/.gitconfig" ]; then
+    (umask 077; set -o noclobber; : > "$HOME/.gitconfig")
+fi
 
 for target in "${FALLBACK_REMOVALS[@]}"; do
     is_repo_link "$target" && [ ! -e "$target" ] && rm -f -- "$target"

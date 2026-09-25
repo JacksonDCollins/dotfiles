@@ -1,4 +1,4 @@
-# Runtime and editor-tool versions live here, never in Neovim configuration.
+# Runtime, CLI, and editor-tool versions live here, never in Neovim configuration.
 # Project mise.toml files can override these global defaults.
 [vars]
 zig_version = "0.16.0" # Zig and ZLS share one compatible release.
@@ -11,6 +11,11 @@ rust = { version = "1.98.1", profile = "minimal", components = ["rustfmt", "rust
 zig = "{{ vars.zig_version }}"
 dart = "3.13.4" # Includes the Dart language server.
 "aqua:tree-sitter/tree-sitter" = "0.26.13"
+
+# Pi coding agent and its local MCP server executables.
+pi = "0.87.1"
+"npm:context-mode" = "1.0.169"
+"npm:chrome-devtools-mcp" = "1.9.0"
 
 # Language servers
 "github:clangd/clangd" = { version = "23.1.0", asset_pattern = "clangd-linux-*.zip", strip_components = 1, bin_path = "bin" }
@@ -30,4 +35,5 @@ black = "26.5.1"
 "npm:markdownlint-cli" = "0.49.1"
 ruff = "0.16.8"
 shellcheck = "0.11.0"
+gh = "latest"
 # Luacheck is supplied by the native package list; mise has no LuaRocks backend.

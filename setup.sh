@@ -14,9 +14,10 @@ mapfile -t packages < "$repo/packages-arch.txt"
 for package in "${packages[@]}"; do
     [[ "$package" =~ ^[a-z0-9][a-z0-9@._+-]*$ ]] || { echo 'Invalid dependency package name.' >&2; exit 1; }
 done
-# Stow is bootstrap infrastructure, not a configuration-specific dependency.
-if ! pacman -Q -- stow "${packages[@]}" >/dev/null 2>&1; then
-    sudo pacman -Syu --needed -- stow "${packages[@]}"
+# Git and Stow are bootstrap infrastructure, not configuration-specific dependencies.
+if ! pacman -Q -- git stow "${packages[@]}" >/dev/null 2>&1; then
+    sudo pacman -Syu --needed -- git stow "${packages[@]}"
 fi
 bash "$repo/install.sh" "$profile"
+bash "$repo/install-tmux-plugins.sh"
 bash "$repo/install-runtimes.sh"

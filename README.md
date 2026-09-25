@@ -14,6 +14,22 @@ Stow installs complete `.bashrc`, Foot, tmux, and Hyprland configs directly.
 There are no generated entrypoints or injected include/source hooks. Existing
 files are backed up and tracked; `bash uninstall.sh` restores them.
 
+## Git configuration
+
+Shared preferences are Stowed to `~/.config/git/config`. Installation creates an
+empty, regular `~/.gitconfig` only if it is missing, so normal `git config --global`
+writes stay outside the repository. Existing local settings take precedence over
+the shared preferences and are not overwritten. Set your identity normally:
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+Keep `~/.gitconfig` present; if you delete it, Git may write global changes to the
+tracked XDG config instead. Uninstall leaves this local identity file in place.
+The shared config uses Delta, which requires `git-delta` on Arch/CachyOS.
+
 ## Dependency ownership
 
 `packages-arch.txt` owns user applications and their configuration dependencies,
