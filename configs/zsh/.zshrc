@@ -8,6 +8,9 @@ if [[ -d $HOME/tmux-bins/tsm/bin ]]; then
 fi
 export PATH
 export DOTFILES="$HOME/dotfiles"
+export EDITOR=nvim
+export VISUAL=nvim
+export SUDO_EDITOR=nvim
 setopt GLOB_DOTS
 alias vimdiff='nvim -d'
 

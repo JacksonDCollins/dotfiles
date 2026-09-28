@@ -5,6 +5,7 @@ zig_version = "0.16.0" # Zig and ZLS share one compatible release.
 
 [tools]
 node = "24.21.0"
+java = "27.0.0"
 python = "3.13.15"
 go = "1.27.1"
 rust = { version = "1.98.1", profile = "minimal", components = ["rustfmt", "rust-src", "rust-analyzer"] }
