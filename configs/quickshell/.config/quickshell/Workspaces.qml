@@ -4,35 +4,36 @@ import QtQuick.Controls.Basic as Basic
 
 Row {
     id: root
-    property real maximumButtonWidth: 120
+    required property ScreenTheme theme
+    property real maximumButtonWidth: root.theme.bar.workspaceMaxWidth
     Repeater {
         model: Hyprland.workspaces
         delegate: Basic.ToolButton {
             id: button
             required property var modelData
-            implicitWidth: Math.min(label.implicitWidth + 2 * Theme.spacing.medium, root.maximumButtonWidth)
+            implicitWidth: Math.min(label.implicitWidth + 2 * root.theme.spacing.medium, root.maximumButtonWidth)
             implicitHeight: label.implicitHeight
-            horizontalPadding: Theme.spacing.medium
+            horizontalPadding: root.theme.spacing.medium
             verticalPadding: 0
             hoverEnabled: true
             Accessible.name: "Workspace " + modelData.name + (modelData.active ? ", active" : "")
             onClicked: modelData.activate()
             background: Rectangle {
-                radius: Theme.radius.medium
-                color: button.down ? Theme.surfacePressed : button.hovered ? Theme.surfaceHover
-                    : button.modelData.active ? Theme.selectionBackground : Theme.background
-                border.color: Theme.focusBorder
-                border.width: button.visualFocus ? Theme.widget.borderWidth : 0
+                radius: root.theme.radius.medium
+                color: button.down ? root.theme.surfacePressed : button.hovered ? root.theme.surfaceHover
+                    : button.modelData.active ? root.theme.selectionBackground : root.theme.background
+                border.color: root.theme.focusBorder
+                border.width: button.visualFocus ? root.theme.widget.borderWidth : 0
             }
             contentItem: Text {
                 id: label
                 text: button.modelData.name
                 textFormat: Text.PlainText
-                font: Theme.font
+                font: root.theme.font
                 elide: Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
-                color: button.modelData.active ? Theme.selectionForeground : Theme.foreground
+                color: button.modelData.active ? root.theme.selectionForeground : root.theme.foreground
             }
         }
     }

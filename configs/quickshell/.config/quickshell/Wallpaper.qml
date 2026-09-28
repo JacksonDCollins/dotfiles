@@ -10,9 +10,11 @@ Scope {
         model: Quickshell.screens
 
         delegate: PanelWindow {
+            id: wallpaperWindow
+            readonly property ScreenTheme theme: Theme.forScreen(modelData)
             required property var modelData
             screen: modelData
-            color: Theme.background
+            color: wallpaperWindow.theme.background
             anchors {
                 top: true
                 bottom: true
@@ -27,7 +29,7 @@ Scope {
 
             Image {
                 anchors.fill: parent
-                source: Theme.wallpaperFilePath
+                source: wallpaperWindow.theme.wallpaperFilePath
                 fillMode: Image.PreserveAspectCrop
             }
         }

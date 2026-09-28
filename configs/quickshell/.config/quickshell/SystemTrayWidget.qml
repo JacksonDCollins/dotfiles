@@ -4,7 +4,9 @@ import Quickshell.Services.SystemTray
 import QtQuick.Controls
 
 Row {
-    spacing: Theme.spacing.small
+    id: root
+    required property ScreenTheme theme
+    spacing: root.theme.tray.spacing
     Repeater {
         model: SystemTray.items
 
@@ -12,22 +14,22 @@ Row {
             id: button
             required property var modelData
 
-            implicitWidth: Theme.bar.height
-            implicitHeight: Theme.bar.height
-            padding: Theme.spacing.small
+            implicitWidth: root.theme.tray.iconSize + 2 * root.theme.tray.padding
+            implicitHeight: root.theme.tray.iconSize + 2 * root.theme.tray.padding
+            padding: root.theme.tray.padding
             hoverEnabled: true
             Accessible.name: modelData.title || modelData.tooltipTitle || modelData.id || "Tray application"
 
             contentItem: IconImage {
-                implicitSize: Math.max(1, Theme.bar.height - 2 * Theme.spacing.small)
+                implicitSize: root.theme.tray.iconSize
                 source: button.modelData.icon
             }
 
             background: Rectangle {
-                radius: Theme.radius.small
-                color: button.down ? Theme.surfacePressed : button.hovered ? Theme.surfaceHover : "transparent"
-                border.width: button.visualFocus ? Theme.widget.borderWidth : 0
-                border.color: Theme.focusBorder
+                radius: root.theme.radius.small
+                color: button.down ? root.theme.surfacePressed : button.hovered ? root.theme.surfaceHover : "transparent"
+                border.width: button.visualFocus ? root.theme.widget.borderWidth : 0
+                border.color: root.theme.focusBorder
             }
 
             onClicked: {
@@ -52,7 +54,7 @@ Row {
                     trayMenu.popup(button, 0, button.height);
             }
 
-            TrayMenu {
+            TrayMenu { theme: root.theme;
                 id: trayMenu
                 handle: button.modelData.menu
             }

@@ -1,8 +1,10 @@
 import QtQuick
 
 Text {
-    font: Theme.iconFont
-    color: Theme.foreground
+    id: iconRoot
+    required property ScreenTheme theme
+    font: iconRoot.theme.iconFont
+    color: iconRoot.theme.foreground
     textFormat: Text.PlainText
     // Rasterize icon outlines directly instead of Qt Quick's distance-field atlas.
     renderType: Text.NativeRendering

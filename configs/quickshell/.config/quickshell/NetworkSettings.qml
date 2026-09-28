@@ -6,6 +6,7 @@ import QtQuick.Layouts
 
 ColumnLayout {
     id: root
+    required property ScreenTheme theme
     property bool active: false
     readonly property var devices: Networking.devices.values
     property var selectedDevice: devices.find(d => d.connected) || devices[0] || null
@@ -17,7 +18,7 @@ ColumnLayout {
     onSelectedDeviceChanged: hiddenPassword.text = ""
     signal backRequested()
     signal closeRequested()
-    spacing: Theme.spacing.small
+    spacing: root.theme.spacing.small
     onDevicesChanged: { if (!devices.includes(selectedDevice)) selectedDevice = devices.find(d => d.connected) || devices[0] || null; }
     onActiveChanged: { if (active) forceActiveFocus(); else { hiddenPassword.text = ""; confirmForget = false; } }
     Keys.onEscapePressed: closeRequested()
@@ -35,62 +36,62 @@ ColumnLayout {
     }
     component Label: Text {
         Layout.fillWidth: true
-        font: Theme.smallFont
-        color: Theme.foreground
+        font: root.theme.smallFont
+        color: root.theme.foreground
         textFormat: Text.PlainText
         wrapMode: Text.WordWrap
     }
     component ActionButton: Basic.Button {
         id: control
-        padding: Theme.spacing.medium
-        font: Theme.smallFont
+        padding: root.theme.spacing.medium
+        font: root.theme.smallFont
         hoverEnabled: true
         contentItem: Text {
             text: control.text; font: control.font; textFormat: Text.PlainText
-            color: control.enabled ? Theme.foreground : Theme.muted
+            color: control.enabled ? root.theme.foreground : root.theme.muted
             horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
         }
         background: Rectangle {
-            radius: Theme.radius.small
-            color: control.down ? Theme.surfacePressed : control.hovered ? Theme.surfaceHover : Theme.surface
-            border.color: Theme.focusBorder
-            border.width: control.visualFocus ? Theme.widget.borderWidth : 0
+            radius: root.theme.radius.small
+            color: control.down ? root.theme.surfacePressed : control.hovered ? root.theme.surfaceHover : root.theme.surface
+            border.color: root.theme.focusBorder
+            border.width: control.visualFocus ? root.theme.widget.borderWidth : 0
         }
     }
     component Field: Basic.TextField {
         id: control
         Layout.fillWidth: true
-        font: Theme.smallFont
-        color: Theme.foreground
-        placeholderTextColor: Theme.muted
-        selectionColor: Theme.selectionBackground
-        selectedTextColor: Theme.selectionForeground
+        font: root.theme.smallFont
+        color: root.theme.foreground
+        placeholderTextColor: root.theme.muted
+        selectionColor: root.theme.selectionBackground
+        selectedTextColor: root.theme.selectionForeground
         Accessible.name: placeholderText
         background: Rectangle {
-            color: Theme.surface; radius: Theme.radius.small
-            border.width: Theme.widget.borderWidth
-            border.color: control.activeFocus ? Theme.focusBorder : Theme.border
+            color: root.theme.surface; radius: root.theme.radius.small
+            border.width: root.theme.widget.borderWidth
+            border.color: control.activeFocus ? root.theme.focusBorder : root.theme.border
         }
     }
     component Selector: Basic.ComboBox {
         Layout.fillWidth: true
-        font: Theme.smallFont
-        palette.button: Theme.surface
-        palette.buttonText: Theme.foreground
-        palette.text: Theme.foreground
-        palette.base: Theme.background
-        palette.window: Theme.background
-        palette.windowText: Theme.foreground
-        palette.highlight: Theme.accent
-        palette.highlightedText: Theme.accentForeground
+        font: root.theme.smallFont
+        palette.button: root.theme.surface
+        palette.buttonText: root.theme.foreground
+        palette.text: root.theme.foreground
+        palette.base: root.theme.background
+        palette.window: root.theme.background
+        palette.windowText: root.theme.foreground
+        palette.highlight: root.theme.accent
+        palette.highlightedText: root.theme.accentForeground
     }
     RowLayout {
         Layout.fillWidth: true
         ActionButton { text: "Back"; onClicked: root.backRequested() }
-        Label { text: "Network settings"; font: Theme.font }
+        Label { text: "Network settings"; font: root.theme.font }
         ActionButton { text: "Close"; onClicked: root.closeRequested() }
     }
-    Label { visible: details.message !== ""; text: details.message; color: details.failed ? Theme.error : Theme.muted }
+    Label { visible: details.message !== ""; text: details.message; color: details.failed ? root.theme.error : root.theme.muted }
     Basic.ScrollView {
         id: settingsScroll
         Layout.fillWidth: true; Layout.fillHeight: true
@@ -99,8 +100,8 @@ ColumnLayout {
         Basic.ScrollBar.horizontal.policy: Basic.ScrollBar.AlwaysOff
         ColumnLayout {
             width: settingsScroll.availableWidth
-            spacing: Theme.spacing.small
-            Label { text: "Current connection"; font: Theme.font }
+            spacing: root.theme.spacing.small
+            Label { text: "Current connection"; font: root.theme.font }
             Selector {
                 model: root.devices.map(d => d.name)
                 currentIndex: root.devices.indexOf(root.selectedDevice)
@@ -119,15 +120,15 @@ ColumnLayout {
                     + "\nActive DNS: " + [details.info["IP4.DNS"], details.info["IP6.DNS"]].filter(v => v).join(", ")
             }
             ActionButton { text: "Refresh info"; enabled: !details.busy; onClicked: { details.message = ""; details.failed = false; details.refresh(); } }
-            Label { text: "Ping / packet loss (five packets)"; font: Theme.font }
+            Label { text: "Ping / packet loss (five packets)"; font: root.theme.font }
             Field { text: details.pingTarget; placeholderText: "Gateway, IP address or hostname"; onTextEdited: details.pingTarget = text }
             RowLayout {
                 ActionButton { text: "Test"; enabled: details.interfaceName !== "" && !details.pingRunning; onClicked: details.ping() }
                 ActionButton { text: "Stop"; enabled: details.pingRunning; onClicked: details.stopPing() }
             }
-            Label { text: details.pingResult || "Runs only when you press Test. ICMP may be blocked; link speed is not measured internet throughput."; color: Theme.muted }
+            Label { text: details.pingResult || "Runs only when you press Test. ICMP may be blocked; link speed is not measured internet throughput."; color: root.theme.muted }
 
-            Label { text: "Saved profile"; font: Theme.font }
+            Label { text: "Saved profile"; font: root.theme.font }
             Selector {
                 model: details.profiles.map(p => p.label)
                 currentIndex: details.profiles.findIndex(p => p.uuid === details.uuid)
@@ -135,7 +136,7 @@ ColumnLayout {
                 Accessible.name: "Saved network profile"
                 onActivated: index => details.selectProfile(details.profiles[index].uuid)
             }
-            Label { text: details.uuid ? "UUID: " + details.uuid : "No saved profiles"; color: Theme.muted }
+            Label { text: details.uuid ? "UUID: " + details.uuid : "No saved profiles"; color: root.theme.muted }
             RowLayout {
                 ActionButton {
                     text: details.autoconnect ? "Autoconnect: on" : "Autoconnect: off"
@@ -147,14 +148,14 @@ ColumnLayout {
             Label {
                 visible: root.confirmForget
                 text: "Forget this profile and its saved credentials? An active connection using it may disconnect."
-                color: Theme.warning
+                color: root.theme.warning
             }
             RowLayout {
                 visible: root.confirmForget
                 ActionButton { text: "Confirm forget"; enabled: !details.busy; onClicked: { root.confirmForget = false; details.forget(); } }
                 ActionButton { text: "Cancel"; onClicked: root.confirmForget = false }
             }
-            Label { text: "DNS for the selected saved profile"; font: Theme.font }
+            Label { text: "DNS for the selected saved profile"; font: root.theme.font }
             Selector {
                 model: ["Automatic (DHCP / router)", "Custom DNS only"]
                 currentIndex: root.manualDns ? 1 : 0
@@ -168,10 +169,10 @@ ColumnLayout {
             Label {
                 text: (details.mixedDns ? "This profile currently uses different DNS modes for IPv4 and IPv6. " : "")
                     + "Apply sets the chosen mode for both IP families. Automatic clears custom servers. Live reapply does not force a reconnect."
-                color: Theme.muted
+                color: root.theme.muted
             }
 
-            Label { text: "Join a hidden Wi-Fi network"; font: Theme.font }
+            Label { text: "Join a hidden Wi-Fi network"; font: root.theme.font }
             Field { id: hiddenSsid; placeholderText: "Exact SSID (up to 32 UTF-8 bytes)"; enabled: root.canJoinHidden && !details.busy }
             Selector {
                 id: hiddenSecurity
@@ -196,7 +197,7 @@ ColumnLayout {
                     hiddenPassword.text = "";
                 }
             }
-            Label { text: "Uses the selected Wi-Fi interface. Creates a new saved profile with autoconnect initially off. Enterprise/certificate setup remains outside this editor."; color: Theme.muted }
+            Label { text: "Uses the selected Wi-Fi interface. Creates a new saved profile with autoconnect initially off. Enterprise/certificate setup remains outside this editor."; color: root.theme.muted }
         }
     }
 }

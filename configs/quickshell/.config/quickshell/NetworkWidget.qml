@@ -7,6 +7,7 @@ import QtQuick.Layouts
 
 ColumnLayout {
     id: root
+    required property ScreenTheme theme
     property bool active: false
     property var scanningDevices: []
     property Network trackedNetwork: null
@@ -15,7 +16,7 @@ ColumnLayout {
     property bool failed: false
     signal closeRequested()
     signal settingsRequested()
-    spacing: Theme.spacing.small
+    spacing: root.theme.spacing.small
 
     readonly property var devices: Networking.devices.values
     readonly property var wifiDevices: devices.filter(d => d.type === DeviceType.Wifi && d.nmManaged)
@@ -132,49 +133,49 @@ ColumnLayout {
 
     component ActionButton: Basic.Button {
         id: button
-        font: Theme.smallFont
-        padding: Theme.spacing.medium
+        font: root.theme.smallFont
+        padding: root.theme.spacing.medium
         hoverEnabled: true
         contentItem: Text {
             text: button.text
             font: button.font
             textFormat: Text.PlainText
-            color: button.enabled ? Theme.foreground : Theme.muted
+            color: button.enabled ? root.theme.foreground : root.theme.muted
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }
         background: Rectangle {
-            radius: Theme.radius.small
-            color: button.down ? Theme.surfacePressed : button.hovered ? Theme.surfaceHover : Theme.surface
-            border.color: Theme.focusBorder
-            border.width: button.visualFocus ? Theme.widget.borderWidth : 0
+            radius: root.theme.radius.small
+            color: button.down ? root.theme.surfacePressed : button.hovered ? root.theme.surfaceHover : root.theme.surface
+            border.color: root.theme.focusBorder
+            border.width: button.visualFocus ? root.theme.widget.borderWidth : 0
         }
     }
     RowLayout {
         Layout.fillWidth: true
-        Text { Layout.fillWidth: true; text: "Network"; font: Theme.largeFont; color: Theme.foreground }
+        Text { Layout.fillWidth: true; text: "Network"; font: root.theme.largeFont; color: root.theme.foreground }
         ActionButton { text: "Close"; Accessible.name: "Close network popup"; onClicked: root.closeRequested() }
     }
     Text {
         Layout.fillWidth: true
         text: root.status
         textFormat: Text.PlainText
-        font: Theme.smallFont
-        color: Theme.muted
+        font: root.theme.smallFont
+        color: root.theme.muted
         wrapMode: Text.WordWrap
     }
     Rectangle {
         objectName: "liveNetworkInfo"
         Layout.fillWidth: true
         visible: root.monitoredDevice !== null
-        implicitHeight: liveInfo.implicitHeight + 2 * Theme.spacing.small
-        radius: Theme.radius.small
-        color: Theme.surface
+        implicitHeight: liveInfo.implicitHeight + 2 * root.theme.spacing.small
+        radius: root.theme.radius.small
+        color: root.theme.surface
         ColumnLayout {
             id: liveInfo
             anchors.fill: parent
-            anchors.margins: Theme.spacing.small
-            spacing: Theme.spacing.small
+            anchors.margins: root.theme.spacing.small
+            spacing: root.theme.spacing.small
             Text {
                 Layout.fillWidth: true
                 text: "Link speed: " + (liveDetails.linkSpeed || "--")
@@ -182,8 +183,8 @@ ColumnLayout {
                     + "\nPacket loss (last 24): " + liveDetails.liveLoss
                 textFormat: Text.PlainText
                 wrapMode: Text.NoWrap
-                font: Theme.smallFont
-                color: Theme.foreground
+                font: root.theme.smallFont
+                color: root.theme.foreground
             }
             Text {
                 Layout.fillWidth: true
@@ -191,8 +192,8 @@ ColumnLayout {
                 textFormat: Text.PlainText
                 wrapMode: Text.NoWrap
                 elide: Text.ElideRight
-                font: Theme.smallFont
-                color: Theme.muted
+                font: root.theme.smallFont
+                color: root.theme.muted
             }
         }
     }
@@ -221,8 +222,8 @@ ColumnLayout {
         Text {
             Layout.fillWidth: true
             text: root.wifiDevices.length === 0 ? "No managed Wi-Fi adapter" : !Networking.wifiHardwareEnabled ? "Wi-Fi hardware blocked" : ""
-            font: Theme.smallFont
-            color: Theme.muted
+            font: root.theme.smallFont
+            color: root.theme.muted
             wrapMode: Text.WordWrap
         }
     }
@@ -231,8 +232,8 @@ ColumnLayout {
         visible: root.networks.length === 0
         text: "No networks found. Scan for Wi-Fi, or open Settings & diagnostics for saved and hidden profiles."
         wrapMode: Text.WordWrap
-        font: Theme.smallFont
-        color: Theme.muted
+        font: root.theme.smallFont
+        color: root.theme.muted
     }
     Basic.ScrollView {
         Layout.fillWidth: true
@@ -242,7 +243,7 @@ ColumnLayout {
         Basic.ScrollBar.horizontal.policy: Basic.ScrollBar.AlwaysOff
         ColumnLayout {
             width: root.width
-            spacing: Theme.spacing.small
+            spacing: root.theme.spacing.small
             Repeater {
                 model: root.networks
                 delegate: Rectangle {
@@ -250,15 +251,15 @@ ColumnLayout {
                     required property Network modelData
                     readonly property bool wifi: root.isWifi(modelData)
                     Layout.fillWidth: true
-                    implicitHeight: contents.implicitHeight + 2 * Theme.spacing.small
-                    radius: Theme.radius.small
-                    color: Theme.surface
+                    implicitHeight: contents.implicitHeight + 2 * root.theme.spacing.small
+                    radius: root.theme.radius.small
+                    color: root.theme.surface
                     RowLayout {
                         id: contents
                         anchors.fill: parent
-                        anchors.margins: Theme.spacing.small
-                        spacing: Theme.spacing.small
-                        MaterialIcon { text: row.wifi ? "wifi" : "lan"; color: row.modelData.connected ? Theme.accent : Theme.muted }
+                        anchors.margins: root.theme.spacing.small
+                        spacing: root.theme.spacing.small
+                        MaterialIcon { theme: root.theme; text: row.wifi ? "wifi" : "lan"; color: row.modelData.connected ? root.theme.accent : root.theme.muted }
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 0
@@ -266,8 +267,8 @@ ColumnLayout {
                                 Layout.fillWidth: true
                                 text: row.modelData.name || (row.wifi ? "Hidden network" : "Wired connection")
                                 textFormat: Text.PlainText
-                                font: Theme.font
-                                color: Theme.foreground
+                                font: root.theme.font
+                                color: root.theme.foreground
                                 elide: Text.ElideRight
                             }
                             Text {
@@ -275,8 +276,8 @@ ColumnLayout {
                                 text: row.modelData.device.name + " · " + (row.modelData.connected ? "Connected" : row.modelData.stateChanging ? "Working…" : row.modelData.known ? "Saved" : "Available")
                                     + (row.wifi ? " · " + Math.round(root.strength(row.modelData) * 100) + "%" : "")
                                 textFormat: Text.PlainText
-                                font: Theme.smallFont
-                                color: Theme.muted
+                                font: root.theme.smallFont
+                                color: root.theme.muted
                                 elide: Text.ElideRight
                             }
                         }
@@ -302,8 +303,8 @@ ColumnLayout {
         text: root.message
         textFormat: Text.PlainText
         wrapMode: Text.WordWrap
-        font: Theme.smallFont
-        color: root.failed ? Theme.error : Theme.muted
+        font: root.theme.smallFont
+        color: root.failed ? root.theme.error : root.theme.muted
     }
     Text {
         Layout.fillWidth: true
@@ -311,8 +312,8 @@ ColumnLayout {
         text: "Password for " + (root.passwordNetwork ? root.passwordNetwork.name : "")
         textFormat: Text.PlainText
         elide: Text.ElideRight
-        font: Theme.smallFont
-        color: Theme.foreground
+        font: root.theme.smallFont
+        color: root.theme.foreground
     }
     Basic.TextField {
         id: password
@@ -320,19 +321,19 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.passwordNetwork !== null
         echoMode: TextInput.Password
-        font: Theme.font
-        color: Theme.foreground
-        selectionColor: Theme.selectionBackground
-        selectedTextColor: Theme.selectionForeground
+        font: root.theme.font
+        color: root.theme.foreground
+        selectionColor: root.theme.selectionBackground
+        selectedTextColor: root.theme.selectionForeground
         placeholderText: "Wi-Fi password"
         Accessible.name: placeholderText
         onVisibleChanged: { if (visible) forceActiveFocus(); else text = ""; }
         onAccepted: root.submitPassword()
         background: Rectangle {
-            radius: Theme.radius.small
-            color: Theme.surface
-            border.color: password.activeFocus ? Theme.focusBorder : Theme.border
-            border.width: Theme.widget.borderWidth
+            radius: root.theme.radius.small
+            color: root.theme.surface
+            border.color: password.activeFocus ? root.theme.focusBorder : root.theme.border
+            border.width: root.theme.widget.borderWidth
         }
     }
     RowLayout {

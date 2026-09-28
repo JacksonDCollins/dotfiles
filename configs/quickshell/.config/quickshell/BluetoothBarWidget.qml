@@ -5,9 +5,10 @@ import QtQuick.Controls.Basic as Basic
 
 Basic.ToolButton {
     id: root
+    required property ScreenTheme theme
     readonly property BluetoothAdapter adapter: Bluetooth.defaultAdapter
     readonly property bool connected: adapter !== null && adapter.devices.values.some(device => device.connected)
-    implicitWidth: icon.implicitWidth + 2 * Theme.spacing.medium
+    implicitWidth: icon.implicitWidth + 2 * root.theme.spacing.medium
     implicitHeight: textMetrics.height
     padding: 0
     hoverEnabled: true
@@ -16,47 +17,47 @@ Basic.ToolButton {
 
     FontMetrics {
         id: textMetrics
-        font: Theme.font
+        font: root.theme.font
     }
     background: Rectangle {
-        radius: Theme.radius.medium
-        color: root.down ? Theme.surfacePressed : root.hovered ? Theme.surfaceHover : Theme.background
-        border.color: Theme.focusBorder
-        border.width: root.visualFocus ? Theme.widget.borderWidth : 0
+        radius: root.theme.radius.medium
+        color: root.down ? root.theme.surfacePressed : root.hovered ? root.theme.surfaceHover : root.theme.background
+        border.color: root.theme.focusBorder
+        border.width: root.visualFocus ? root.theme.widget.borderWidth : 0
     }
-    contentItem: MaterialIcon {
+    contentItem: MaterialIcon { theme: root.theme;
         id: icon
         text: !root.adapter || !root.adapter.enabled ? "bluetooth_disabled" : root.connected ? "bluetooth_connected" : "bluetooth"
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         font: Qt.font({
-            family: Theme.iconFont.family,
-            pixelSize: Theme.font.pixelSize,
-            variableAxes: Theme.iconFont.variableAxes
+            family: root.theme.iconFont.family,
+            pixelSize: root.theme.font.pixelSize,
+            variableAxes: root.theme.iconFont.variableAxes
         })
-        color: !root.adapter || !root.adapter.enabled ? Theme.muted : root.connected ? Theme.accent : Theme.foreground
+        color: !root.adapter || !root.adapter.enabled ? root.theme.muted : root.connected ? root.theme.accent : root.theme.foreground
     }
 
-    DesktopPopup {
+    DesktopPopup { theme: root.theme;
         id: popup
         anchor.item: root
         anchor.edges: Edges.Bottom | Edges.Right
         anchor.gravity: Edges.Bottom | Edges.Left
-        preferredWidth: 380
-        preferredHeight: 440
+        preferredWidth: root.theme.popups.bluetooth.width
+        preferredHeight: root.theme.popups.bluetooth.height
         color: "transparent"
         grabFocus: true
 
         Rectangle {
             anchors.fill: parent
-            color: Theme.background
-            radius: Theme.radius.large
-            border.color: Theme.border
-            border.width: Theme.widget.borderWidth
+            color: root.theme.background
+            radius: root.theme.radius.large
+            border.color: root.theme.border
+            border.width: root.theme.widget.borderWidth
 
-            BluetoothWidget {
+            BluetoothWidget { theme: root.theme;
                 anchors.fill: parent
-                anchors.margins: Theme.widget.padding
+                anchors.margins: root.theme.widget.padding
                 adapter: root.adapter
                 active: popup.visible
                 onCloseRequested: popup.visible = false

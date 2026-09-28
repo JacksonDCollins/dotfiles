@@ -9,6 +9,20 @@ hl.bind("SUPER + SHIFT + M", hl.dsp.exec_cmd("uwsm stop"))
 hl.bind("SUPER + L", hl.dsp.exec_cmd('"$HOME/.local/bin/dotfiles-session" lock'))
 hl.bind("SUPER + ALT + L", hl.dsp.layout("togglesplit"))
 
+-- Query the resulting state once; Quickshell only displays the supplied snapshot.
+local function media_key(key, command, action, query)
+  local state = query and ('"$(LC_ALL=C ' .. query .. ' 2>/dev/null)"') or '\"\"'
+  hl.bind(key, hl.dsp.exec_cmd(command
+    .. '; quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call mediaOsd display '
+    .. action .. ' ' .. state))
+end
+media_key("XF86AudioRaiseVolume", "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+", "volume-up", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
+media_key("XF86AudioLowerVolume", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-", "volume-down", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
+media_key("XF86AudioMute", "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle", "mute", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
+media_key("XF86AudioPlay", "playerctl play-pause", "play-pause", "playerctl status")
+media_key("XF86AudioNext", "playerctl next", "next")
+media_key("XF86AudioPrev", "playerctl previous", "previous")
+
 hl.bind("SUPER + H", hl.dsp.focus({ workspace = "m-1" }))
 hl.bind("SUPER + Comma", hl.dsp.focus({ workspace = "m+1" }))
 hl.bind("SUPER + SHIFT + H", hl.dsp.window.move({ workspace = "m-1" }))

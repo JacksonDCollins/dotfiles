@@ -7,6 +7,7 @@ import QtQuick.Layouts
 
 Basic.ToolButton {
     id: root
+    required property ScreenTheme theme
     property string pendingAction: ""
     property string message: ""
     readonly property bool busy: actionProcess.running
@@ -35,26 +36,26 @@ Basic.ToolButton {
         actionProcess.command = ["bash", Quickshell.env("HOME") + "/.local/bin/dotfiles-session", action];
         actionProcess.running = true;
     }
-    implicitWidth: icon.implicitWidth + 2 * Theme.spacing.medium
+    implicitWidth: icon.implicitWidth + 2 * root.theme.spacing.medium
     implicitHeight: metrics.height
     padding: 0
     hoverEnabled: true
     Accessible.name: "Lock and session controls"
     onClicked: popup.visible = !popup.visible
-    FontMetrics { id: metrics; font: Theme.font }
+    FontMetrics { id: metrics; font: root.theme.font }
     background: Rectangle {
-        radius: Theme.radius.medium
-        color: root.down ? Theme.surfacePressed : root.hovered ? Theme.surfaceHover : Theme.background
-        border.width: root.visualFocus ? Theme.widget.borderWidth : 0
-        border.color: Theme.focusBorder
+        radius: root.theme.radius.medium
+        color: root.down ? root.theme.surfacePressed : root.hovered ? root.theme.surfaceHover : root.theme.background
+        border.width: root.visualFocus ? root.theme.widget.borderWidth : 0
+        border.color: root.theme.focusBorder
     }
-    contentItem: MaterialIcon {
+    contentItem: MaterialIcon { theme: root.theme;
         id: icon
         text: "power_settings_new"
-        color: Theme.foreground
+        color: root.theme.foreground
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font: Qt.font({family: Theme.iconFont.family, pixelSize: Theme.font.pixelSize, variableAxes: Theme.iconFont.variableAxes})
+        font: Qt.font({family: root.theme.iconFont.family, pixelSize: root.theme.font.pixelSize, variableAxes: root.theme.iconFont.variableAxes})
     }
     Process {
         id: actionProcess
@@ -67,20 +68,20 @@ Basic.ToolButton {
     }
     component ActionButton: Basic.Button {
         Layout.fillWidth: true
-        font: Theme.smallFont
-        padding: Theme.spacing.medium
-        palette.button: Theme.surface
-        palette.buttonText: Theme.foreground
-        palette.highlight: Theme.accent
+        font: root.theme.smallFont
+        padding: root.theme.spacing.medium
+        palette.button: root.theme.surface
+        palette.buttonText: root.theme.foreground
+        palette.highlight: root.theme.accent
         enabled: !root.busy
     }
-    DesktopPopup {
+    DesktopPopup { theme: root.theme;
         id: popup
         anchor.item: root
         anchor.edges: Edges.Bottom | Edges.Right
         anchor.gravity: Edges.Bottom | Edges.Left
-        preferredWidth: 320
-        preferredHeight: content.implicitHeight + 2 * Theme.widget.padding
+        preferredWidth: root.theme.popups.session.width
+        preferredHeight: root.theme.popups.session.height || content.implicitHeight + 2 * root.theme.widget.padding
         color: "transparent"
         grabFocus: true
         onVisibleChanged: {
@@ -89,16 +90,16 @@ Basic.ToolButton {
         }
         Rectangle {
             anchors.fill: parent
-            radius: Theme.radius.large
-            color: Theme.background
-            border.color: Theme.border
-            border.width: Theme.widget.borderWidth
+            radius: root.theme.radius.large
+            color: root.theme.background
+            border.color: root.theme.border
+            border.width: root.theme.widget.borderWidth
             ColumnLayout {
                 id: content
-                anchors { left: parent.left; right: parent.right; top: parent.top; margins: Theme.widget.padding }
-                spacing: Theme.spacing.small
+                anchors { left: parent.left; right: parent.right; top: parent.top; margins: root.theme.widget.padding }
+                spacing: root.theme.spacing.small
                 Keys.onEscapePressed: { root.pendingAction = ""; popup.visible = false; }
-                Text { text: "Session"; font: Theme.largeFont; color: Theme.foreground }
+                Text { text: "Session"; font: root.theme.largeFont; color: root.theme.foreground }
                 Repeater {
                     model: root.actions
                     delegate: ActionButton {
@@ -115,8 +116,8 @@ Basic.ToolButton {
                         : root.pendingLabel + "? Save your work first; applications will be closed."
                     textFormat: Text.PlainText
                     wrapMode: Text.WordWrap
-                    font: Theme.smallFont
-                    color: Theme.warning
+                    font: root.theme.smallFont
+                    color: root.theme.warning
                 }
                 ActionButton {
                     visible: root.pendingAction !== ""
@@ -134,8 +135,8 @@ Basic.ToolButton {
                     text: root.message
                     textFormat: Text.PlainText
                     wrapMode: Text.WordWrap
-                    font: Theme.smallFont
-                    color: root.busy ? Theme.muted : Theme.error
+                    font: root.theme.smallFont
+                    color: root.busy ? root.theme.muted : root.theme.error
                 }
                 ActionButton { text: "Close"; enabled: true; onClicked: popup.visible = false }
             }

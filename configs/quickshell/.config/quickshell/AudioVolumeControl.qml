@@ -6,13 +6,14 @@ import Quickshell.Services.Pipewire
 
 ColumnLayout {
     id: root
+    required property ScreenTheme theme
     property PwNode node: null
     property bool active: false
     property string label: node ? node.description || node.nickname || node.name : "Unavailable"
     readonly property bool usable: active && node !== null && node.ready && node.audio !== null
     readonly property real amount: usable && Number.isFinite(node.audio.volume) ? node.audio.volume : 0
     readonly property bool muted: usable && node.audio.muted
-    spacing: Theme.spacing.small
+    spacing: root.theme.spacing.small
 
     PwObjectTracker { objects: root.active && root.node ? [root.node] : [] }
     function setVolume(value): void {
@@ -25,8 +26,8 @@ ColumnLayout {
         text: root.label
         textFormat: Text.PlainText
         elide: Text.ElideRight
-        font: Theme.smallFont
-        color: Theme.foreground
+        font: root.theme.smallFont
+        color: root.theme.foreground
     }
     RowLayout {
         Layout.fillWidth: true
@@ -36,20 +37,20 @@ ColumnLayout {
             text: root.muted ? "Unmute" : "Mute"
             Accessible.name: (root.muted ? "Unmute " : "Mute ") + root.label
             enabled: root.usable
-            padding: Theme.spacing.medium
-            font: Theme.smallFont
+            padding: root.theme.spacing.medium
+            font: root.theme.smallFont
             hoverEnabled: true
             onClicked: root.toggleMute()
             contentItem: Text {
                 text: muteButton.text; font: muteButton.font
-                color: muteButton.enabled ? root.muted ? Theme.warning : Theme.foreground : Theme.muted
+                color: muteButton.enabled ? root.muted ? root.theme.warning : root.theme.foreground : root.theme.muted
                 horizontalAlignment: Text.AlignHCenter
             }
             background: Rectangle {
-                radius: Theme.radius.small
-                color: muteButton.down ? Theme.surfacePressed : muteButton.hovered ? Theme.surfaceHover : Theme.surface
-                border.width: muteButton.visualFocus ? Theme.widget.borderWidth : 0
-                border.color: Theme.focusBorder
+                radius: root.theme.radius.small
+                color: muteButton.down ? root.theme.surfacePressed : muteButton.hovered ? root.theme.surfaceHover : root.theme.surface
+                border.width: muteButton.visualFocus ? root.theme.widget.borderWidth : 0
+                border.color: root.theme.focusBorder
             }
         }
         Basic.Slider {
@@ -64,15 +65,15 @@ ColumnLayout {
                 x: slider.leftPadding
                 y: slider.topPadding + slider.availableHeight / 2 - height / 2
                 width: slider.availableWidth; height: 4; radius: 2
-                color: Theme.surfaceHover
-                Rectangle { width: slider.visualPosition * parent.width; height: parent.height; radius: 2; color: root.muted ? Theme.muted : Theme.accent }
+                color: root.theme.surfaceHover
+                Rectangle { width: slider.visualPosition * parent.width; height: parent.height; radius: 2; color: root.muted ? root.theme.muted : root.theme.accent }
             }
             handle: Rectangle {
                 x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
                 y: slider.topPadding + slider.availableHeight / 2 - height / 2
                 implicitWidth: 14; implicitHeight: 14; radius: 7
-                color: slider.enabled ? Theme.foreground : Theme.muted
-                border.color: Theme.focusBorder
+                color: slider.enabled ? root.theme.foreground : root.theme.muted
+                border.color: root.theme.focusBorder
                 border.width: slider.visualFocus ? 2 : 0
             }
         }
@@ -84,8 +85,8 @@ ColumnLayout {
         Text {
             Layout.minimumWidth: 44
             text: root.usable ? Math.round(root.amount * 100) + "%" : "--"
-            font: Theme.smallFont
-            color: root.muted ? Theme.muted : Theme.foreground
+            font: root.theme.smallFont
+            color: root.muted ? root.theme.muted : root.theme.foreground
             horizontalAlignment: Text.AlignRight
         }
     }

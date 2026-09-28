@@ -19,32 +19,53 @@
   "info": "#89b4fa",
   "font": {
     "family": "JetBrainsMono Nerd Font",
-    "pixelSize": 12,
-    "smallPixelSize": 10,
-    "largePixelSize": 16,
+    "pixelSize": "1.111%",
+    "smallPixelSize": "0.926%",
+    "largePixelSize": "1.481%",
     "iconFamily": "Material Symbols Rounded",
-    "iconPixelSize": 24
+    "iconPixelSize": "2.222%"
   },
   "spacing": {
-    "small": 4,
-    "medium": 8,
-    "large": 12,
-    "extraLarge": 16
+    "small": "0.370%",
+    "medium": "0.741%",
+    "large": "1.111%",
+    "extraLarge": "1.481%"
   },
   "radius": {
-    "small": 4,
-    "medium": 8,
-    "large": 12
+    "small": "0.370%",
+    "medium": "0.741%",
+    "large": "1.111%"
   },
   "bar": {
     "background": "transparent",
-    "height": 30,
-    "padding": 8,
-    "spacing": 8
+    "height": "2.778%",
+    "padding": "0.741%",
+    "spacing": "0.741%",
+    "workspaceMaxWidth": "11.111%",
+    "playerMaxWidth": "29.630%",
+    "compactWidth": "83.333%"
+  },
+  "tray": {
+    "iconSize": "2.037%",
+    "padding": "0.370%",
+    "spacing": "0.370%"
+  },
+  "popups": {
+    "default": { "width": "37.037%", "height": "44.444%" },
+    "audio": { "width": "37.037%", "height": "44.444%" },
+    "bluetooth": { "width": "35.185%", "height": "40.741%" },
+    "calendar": { "width": "29.630%", "height": "23.148%" },
+    "network": { "width": "37.037%", "height": "44.444%" },
+    "notifications": { "width": "38.889%", "height": "51.852%" },
+    "player": { "width": "35.185%", "height": "24.074%" },
+    "power": { "width": "33.333%", "height": 0 },
+    "session": { "width": "29.630%", "height": 0 },
+    "toasts": { "width": "37.037%", "height": "55.556%" },
+    "tray": { "width": "29.630%", "height": 0 }
   },
   "widget": {
-    "padding": 10,
-    "borderWidth": 1
+    "padding": "0.926%",
+    "borderWidth": "0.093%"
   },
   "palette": {
     "rosewater": "#f5e0dc",

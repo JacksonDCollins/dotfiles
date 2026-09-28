@@ -5,7 +5,8 @@ import QtQuick.Controls.Basic as Basic
 
 Basic.ToolButton {
     id: player
-    property real maximumWidth: 320
+    required property ScreenTheme theme
+    property real maximumWidth: player.theme.bar.playerMaxWidth
     implicitWidth: content.implicitWidth
     implicitHeight: trackLabel.implicitHeight
     padding: 0
@@ -13,10 +14,10 @@ Basic.ToolButton {
     Accessible.name: "Media controls" + (activePlayer ? ": " + (metadata.track.title || activePlayer.identity) : "")
     onClicked: popup.visible = !popup.visible
     background: Rectangle {
-        radius: Theme.radius.medium
-        color: player.down ? Theme.surfacePressed : player.hovered ? Theme.surfaceHover : Theme.background
-        border.color: Theme.focusBorder
-        border.width: player.visualFocus ? Theme.widget.borderWidth : 0
+        radius: player.theme.radius.medium
+        color: player.down ? player.theme.surfacePressed : player.hovered ? player.theme.surfaceHover : player.theme.background
+        border.color: player.theme.focusBorder
+        border.width: player.visualFocus ? player.theme.widget.borderWidth : 0
     }
 
     readonly property MprisPlayer activePlayer: Media.selectedPlayer
@@ -26,7 +27,7 @@ Basic.ToolButton {
         sourcePlayer: player.activePlayer
     }
 
-    DesktopPopup {
+    DesktopPopup { theme: player.theme;
         id: popup
         color: "transparent"
 
@@ -34,39 +35,39 @@ Basic.ToolButton {
         anchor.edges: Edges.Bottom
         anchor.gravity: Edges.Bottom
 
-        preferredWidth: 380
-        preferredHeight: 260
+        preferredWidth: player.theme.popups.player.width
+        preferredHeight: player.theme.popups.player.height
 
         grabFocus: true
 
         Rectangle {
             anchors.fill: parent
-            color: Theme.background
-            radius: Theme.radius.large
-            border.color: Theme.border
-            border.width: Theme.widget.borderWidth
+            color: player.theme.background
+            radius: player.theme.radius.large
+            border.color: player.theme.border
+            border.width: player.theme.widget.borderWidth
 
-            PlayerWidget {}
+            PlayerWidget { theme: player.theme;}
         }
     }
 
     Row {
         id: content
         anchors.centerIn: parent
-        spacing: Theme.spacing.small
-        leftPadding: Theme.spacing.medium
-        rightPadding: Theme.spacing.medium
+        spacing: player.theme.spacing.small
+        leftPadding: player.theme.spacing.medium
+        rightPadding: player.theme.spacing.medium
 
-        MaterialIcon {
+        MaterialIcon { theme: player.theme;
             id: mediaIcon
             anchors.verticalCenter: parent.verticalCenter
             text: "play_circle"
             font: Qt.font({
-                family: Theme.iconFont.family,
-                pixelSize: Theme.font.pixelSize,
-                variableAxes: Theme.iconFont.variableAxes
+                family: player.theme.iconFont.family,
+                pixelSize: player.theme.font.pixelSize,
+                variableAxes: player.theme.iconFont.variableAxes
             })
-            color: metadata.loading || metadata.showingPreviousTrack ? Theme.muted : Theme.foreground
+            color: metadata.loading || metadata.showingPreviousTrack ? player.theme.muted : player.theme.foreground
         }
         Text {
             id: trackLabel
@@ -80,7 +81,7 @@ Basic.ToolButton {
             width: Math.min(implicitWidth, Math.max(0, player.maximumWidth - mediaIcon.width - content.leftPadding - content.rightPadding - content.spacing))
             elide: Text.ElideRight
             textFormat: Text.PlainText
-            font: Theme.font
+            font: player.theme.font
             color: mediaIcon.color
         }
     }

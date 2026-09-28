@@ -203,6 +203,20 @@ are not supported by these configs. Run `Hyprland --version` to check your versi
 - Super+arrows: window focus; Super+number: workspace; add Shift to move a window.
 - Super+H/Comma or PageDown/PageUp: previous/next workspace on this monitor.
 - Super+mouse buttons: move/resize windows.
+- Media keys: volume up/down in 5% steps (capped at 100%) and mute via WirePlumber's
+  `wpctl`; play/pause, next and previous via `playerctl`. Hyprland handles these
+  directly; Quickshell keeps its existing MPRIS display integration. Setup installs
+  `playerctl`; existing installations can run `sudo pacman -S playerctl`, then
+  `hyprctl reload`. ZMK RGB keys control keyboard lighting, not monitor brightness.
+  Each press also shows a themed symbol near the top-center of the focused
+  monitor for 1.2 seconds. Playback shows the resulting playing/paused state;
+  volume changes include a bottom-up vertical level meter (dimmed when muted).
+  The bindings query `playerctl status` or `wpctl get-volume` after the action
+  and send the snapshot to the click-through OSD. It does not steal focus,
+  control playback, or continuously listen for media events. Unavailable state
+  shows a question-mark symbol instead of guessing. No text is displayed.
+  Test without changing volume:
+  `quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call mediaOsd display volume-up "Volume: 0.65"`.
 - `work` preserves the monitor layout and monitor-specific workspace shortcuts;
   its optional browser/email shortcuts still require Firefox and Betterbird.
 - `jacktop` preserves the 4K, scale-2 monitor settings.
@@ -245,6 +259,27 @@ shared `~/.config/theme/` directory:
 - `hyprland.lua`: desktop border colors.
 - `hyprlock.conf`: lock-screen colors, clock and password-field layout.
 - `desktop.json` and `wallpaper.jpeg`: Quickshell colors (including notifications), fonts and background image.
+
+Quickshell's four font size fields accept positive integer pixels or percentages
+of the widget's smaller monitor dimension in logical pixels (after display scaling).
+For example, `"pixelSize": "1%"` rounds to 11 pixels on both 1920×1080 and
+1080×1920 monitors; fixed numeric sizes remain unchanged. Invalid sizes
+raise QML errors naming the JSON field.
+
+Dimensions in `bar`, `spacing`, `widget`, `radius`, `tray`, and `popups` are
+independent: each accepts logical pixels or a percentage of the smaller monitor
+dimension. Changing `font.pixelSize` does not change these values. For example,
+`bar.height: "3%"`, `widget.padding: 10`, and `tray.iconSize: "2%"` can coexist.
+`popups` holds separate width/height settings for each popup. Power/session popup
+heights of 0 mean content-sized; tray/toast heights of 0 mean no configured height
+cap. Popups remain screen-capped and scroll when necessary.
+
+`Theme` creates one resolved `ScreenTheme` per monitor. Window boundaries select
+it with `Theme.forScreen(screen)` and pass it to widgets through a required
+`theme` property. Widgets read `theme.font`, `theme.bar.height`, or
+`theme.spacing.small`; they never calculate sizes or read raw JSON. Percentage
+bindings update with screen dimensions. New widgets must accept and forward the
+same theme object.
 
 The app configs load these native theme files, keeping appearance separate from
 behavior and keybindings. To change the look later, edit or replace this bundle;
@@ -480,11 +515,11 @@ See the [desktop checklist](QUICKSHELL-TODO.md) for outstanding live checks.
 Add future widgets to this same shell rather than launching another copy. The
 archived Omarchy widget under `deprecated/` is not installed.
 
-Shell-owned icons use Material Symbols Rounded through `Theme.iconFont`, configured
+Shell-owned icons use Material Symbols Rounded through `theme.iconFont`, configured
 in `desktop.json` (`font.iconFamily` and `font.iconPixelSize`). Use symbol names such
 as `play_arrow`, `pause`, and `chevron_right` in `MaterialIcon` items, which use native
 font rendering to avoid distance-field artifacts. Keep normal labels on
-`Theme.font`/`Theme.smallFont`. App-provided tray icons and artwork are
+`theme.font`/`theme.smallFont`. App-provided tray icons and artwork are
 unchanged. The package manifest installs the font through the existing setup flow;
 configuration-only installs on other systems need the font installed separately.
 

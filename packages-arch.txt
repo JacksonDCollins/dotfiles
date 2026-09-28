@@ -3,6 +3,7 @@ fuzzel
 neovim
 tmux
 quickshell
+playerctl
 bluez-utils
 util-linux
 fzf

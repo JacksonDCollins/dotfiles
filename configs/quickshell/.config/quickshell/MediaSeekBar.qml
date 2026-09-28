@@ -7,6 +7,7 @@ import Quickshell.Services.Mpris
 
 RowLayout {
     id: root
+    required property ScreenTheme theme
     required property MprisPlayer sourcePlayer
     property bool active: true
     property bool updating: false
@@ -18,7 +19,7 @@ RowLayout {
     readonly property real duration: sourcePlayer && sourcePlayer.lengthSupported && Number.isFinite(sourcePlayer.length) && sourcePlayer.length > 0 && sourcePlayer.length <= 2147483647 ? sourcePlayer.length : 0
     readonly property bool playing: sourcePlayer && sourcePlayer.playbackState === MprisPlaybackState.Playing
     readonly property bool seekEnabled: active && visible && !updating && hasPosition && duration > 0 && sourcePlayer.canControl && sourcePlayer.canSeek
-    spacing: Theme.spacing.small
+    spacing: root.theme.spacing.small
 
     function formatTime(seconds: real): string {
         if (!Number.isFinite(seconds) || seconds < 0)
@@ -55,7 +56,7 @@ RowLayout {
             return "";
         let path = "";
         for (let x = 0; ; x = Math.min(x + 2, end)) {
-            const y = height / 2 + Math.sin(x * Math.PI / 16 - phase) * Theme.spacing.small / 2;
+            const y = height / 2 + Math.sin(x * Math.PI / 16 - phase) * root.theme.spacing.small / 2;
             path += (x === 0 ? "M" : "L") + x.toFixed(2) + "," + y.toFixed(2) + " ";
             if (x === end)
                 break;
@@ -100,16 +101,16 @@ RowLayout {
 
     Text {
         text: root.formatTime(root.hasPosition && !root.updating ? slider.pressed ? slider.value : root.observedPosition : -1)
-        font: Theme.smallFont
-        color: Theme.muted
+        font: root.theme.smallFont
+        color: root.theme.muted
     }
 
     Basic.Slider {
         id: slider
         Layout.fillWidth: true
-        Layout.minimumWidth: Theme.spacing.extraLarge * 2
-        implicitHeight: Theme.bar.height
-        padding: Theme.spacing.small
+        Layout.minimumWidth: root.theme.spacing.extraLarge * 2
+        implicitHeight: root.theme.bar.height
+        padding: root.theme.spacing.small
         from: 0
         to: root.duration || 1
         value: root.observedPosition
@@ -150,12 +151,12 @@ RowLayout {
             height: slider.availableHeight
 
             Rectangle {
-                x: thumb.x - slider.leftPadding + thumb.width + Theme.spacing.small
+                x: thumb.x - slider.leftPadding + thumb.width + root.theme.spacing.small
                 anchors.verticalCenter: parent.verticalCenter
                 width: Math.max(0, parent.width - x)
                 height: 2
                 radius: height / 2
-                color: Theme.border
+                color: root.theme.border
             }
             Shape {
                 anchors.fill: parent
@@ -163,12 +164,12 @@ RowLayout {
                 preferredRendererType: Shape.CurveRenderer
                 ShapePath {
                     fillColor: "transparent"
-                    strokeColor: slider.enabled ? Theme.accent : Theme.muted
+                    strokeColor: slider.enabled ? root.theme.accent : root.theme.muted
                     strokeWidth: 2
                     capStyle: ShapePath.RoundCap
                     joinStyle: ShapePath.RoundJoin
                     PathSvg {
-                        path: root.wavePath(Math.max(0, thumb.x - slider.leftPadding - Theme.spacing.small), track.height, root.wavePhase)
+                        path: root.wavePath(Math.max(0, thumb.x - slider.leftPadding - root.theme.spacing.small), track.height, root.wavePhase)
                     }
                 }
             }
@@ -177,18 +178,18 @@ RowLayout {
             id: thumb
             x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
             y: slider.topPadding + (slider.availableHeight - height) / 2
-            implicitWidth: Theme.spacing.small
-            implicitHeight: Theme.spacing.extraLarge
+            implicitWidth: root.theme.spacing.small
+            implicitHeight: root.theme.spacing.extraLarge
             radius: width / 2
-            color: !slider.enabled ? Theme.muted : slider.visualFocus ? Theme.foreground : Theme.accent
-            border.color: Theme.focusBorder
-            border.width: slider.visualFocus ? Theme.widget.borderWidth : 0
+            color: !slider.enabled ? root.theme.muted : slider.visualFocus ? root.theme.foreground : root.theme.accent
+            border.color: root.theme.focusBorder
+            border.width: slider.visualFocus ? root.theme.widget.borderWidth : 0
         }
     }
 
     Text {
         text: root.formatTime(root.duration > 0 && !root.updating ? root.duration : -1)
-        font: Theme.smallFont
-        color: Theme.muted
+        font: root.theme.smallFont
+        color: root.theme.muted
     }
 }

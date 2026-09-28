@@ -6,11 +6,12 @@ import QtQuick.Layouts
 
 Basic.ToolButton {
     id: root
+    required property ScreenTheme theme
     required property var service
     Component.onDestruction: {
         if (service && service.centerPopup === popup) service.centerPopup = null;
     }
-    implicitWidth: Theme.font.pixelSize + 2 * Theme.spacing.medium
+    implicitWidth: root.theme.font.pixelSize + 2 * root.theme.spacing.medium
     implicitHeight: metrics.height
     padding: 0
     hoverEnabled: true
@@ -19,20 +20,20 @@ Basic.ToolButton {
         if (popup.visible) popup.visible = false;
         else service.showCenter(popup);
     }
-    FontMetrics { id: metrics; font: Theme.font }
+    FontMetrics { id: metrics; font: root.theme.font }
     component ThemedCheckBox: Basic.CheckBox {
         id: control
         Layout.fillWidth: true
         Layout.minimumWidth: 0
-        font: Theme.smallFont
-        padding: Theme.spacing.small
-        spacing: Theme.spacing.medium
+        font: root.theme.smallFont
+        padding: root.theme.spacing.small
+        spacing: root.theme.spacing.medium
         hoverEnabled: true
-        palette.windowText: Theme.foreground
+        palette.windowText: root.theme.foreground
         contentItem: Text {
             text: control.text
             font: control.font
-            color: Theme.foreground
+            color: root.theme.foreground
             textFormat: Text.PlainText
             wrapMode: Text.Wrap
             verticalAlignment: Text.AlignVCenter
@@ -40,35 +41,35 @@ Basic.ToolButton {
             rightPadding: control.mirrored ? control.indicator.width + control.spacing : 0
         }
         indicator: Rectangle {
-            implicitWidth: Theme.font.pixelSize + 6
+            implicitWidth: root.theme.font.pixelSize + 6
             implicitHeight: implicitWidth
             x: control.mirrored ? control.width - width - control.rightPadding : control.leftPadding
             y: control.topPadding + (control.availableHeight - height) / 2
-            radius: Theme.radius.small
-            color: control.down ? Theme.surfacePressed : control.checked ? Theme.accent
-                : control.hovered ? Theme.surfaceHover : Theme.surface
-            border.width: control.visualFocus ? 2 : Theme.widget.borderWidth
-            border.color: control.visualFocus ? Theme.focusBorder : control.checked ? Theme.accent : Theme.border
+            radius: root.theme.radius.small
+            color: control.down ? root.theme.surfacePressed : control.checked ? root.theme.accent
+                : control.hovered ? root.theme.surfaceHover : root.theme.surface
+            border.width: control.visualFocus ? 2 : root.theme.widget.borderWidth
+            border.color: control.visualFocus ? root.theme.focusBorder : control.checked ? root.theme.accent : root.theme.border
             opacity: control.enabled ? 1 : 0.5
-            MaterialIcon {
+            MaterialIcon { theme: root.theme;
                 anchors.centerIn: parent
                 text: "check"
                 visible: control.checked
-                color: control.down ? Theme.accent : Theme.background
-                font: Qt.font({family: Theme.iconFont.family, pixelSize: Theme.font.pixelSize, variableAxes: Theme.iconFont.variableAxes})
+                color: control.down ? root.theme.accent : root.theme.background
+                font: Qt.font({family: root.theme.iconFont.family, pixelSize: root.theme.font.pixelSize, variableAxes: root.theme.iconFont.variableAxes})
             }
         }
     }
     background: Rectangle {
-        radius: Theme.radius.medium
-        color: root.down ? Theme.surfacePressed : root.hovered ? Theme.surfaceHover : Theme.background
-        border.width: root.visualFocus ? Theme.widget.borderWidth : 0
-        border.color: Theme.focusBorder
+        radius: root.theme.radius.medium
+        color: root.down ? root.theme.surfacePressed : root.hovered ? root.theme.surfaceHover : root.theme.background
+        border.width: root.visualFocus ? root.theme.widget.borderWidth : 0
+        border.color: root.theme.focusBorder
     }
-    contentItem: MaterialIcon {
+    contentItem: MaterialIcon { theme: root.theme;
         text: root.service.dnd ? "notifications_off" : "notifications"
-        color: root.service.dnd ? Theme.warning : Theme.foreground
-        font: Qt.font({family: Theme.iconFont.family, pixelSize: Theme.font.pixelSize, variableAxes: Theme.iconFont.variableAxes})
+        color: root.service.dnd ? root.theme.warning : root.theme.foreground
+        font: Qt.font({family: root.theme.iconFont.family, pixelSize: root.theme.font.pixelSize, variableAxes: root.theme.iconFont.variableAxes})
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         Rectangle {
@@ -76,22 +77,22 @@ Basic.ToolButton {
             height: 5
             radius: width / 2
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.horizontalCenterOffset: Theme.font.pixelSize / 2 - 1
+            anchors.horizontalCenterOffset: root.theme.font.pixelSize / 2 - 1
             anchors.verticalCenter: parent.verticalCenter
-            anchors.verticalCenterOffset: -Theme.font.pixelSize / 2 + 2
+            anchors.verticalCenterOffset: -root.theme.font.pixelSize / 2 + 2
             visible: root.service.unread > 0
-            color: Theme.accent
-            border.color: Theme.background
+            color: root.theme.accent
+            border.color: root.theme.background
             border.width: 1
         }
     }
-    DesktopPopup {
+    DesktopPopup { theme: root.theme;
         id: popup
         anchor.item: root
         anchor.edges: Edges.Bottom | Edges.Right
         anchor.gravity: Edges.Bottom | Edges.Left
-        preferredWidth: 420
-        preferredHeight: 560
+        preferredWidth: root.theme.popups.notifications.width
+        preferredHeight: root.theme.popups.notifications.height
         color: "transparent"
         grabFocus: true
         onVisibleChanged: {
@@ -103,17 +104,17 @@ Basic.ToolButton {
         }
         Rectangle {
             anchors.fill: parent
-            color: Theme.background
-            radius: Theme.radius.large
-            border.color: Theme.border
-            border.width: Theme.widget.borderWidth
+            color: root.theme.background
+            radius: root.theme.radius.large
+            border.color: root.theme.border
+            border.width: root.theme.widget.borderWidth
             ColumnLayout {
                 id: content
                 anchors.fill: parent
-                anchors.margins: Theme.widget.padding
-                spacing: Theme.spacing.small
+                anchors.margins: root.theme.widget.padding
+                spacing: root.theme.spacing.small
                 Keys.onEscapePressed: popup.visible = false
-                Text { text: "Notifications"; font: Theme.largeFont; color: Theme.foreground }
+                Text { text: "Notifications"; font: root.theme.largeFont; color: root.theme.foreground }
                 ThemedCheckBox {
                     text: "Do not disturb"
                     checked: root.service.dnd
@@ -130,8 +131,8 @@ Basic.ToolButton {
                         Layout.fillWidth: true
                         text: root.service.history.length + " in this session"
                         elide: Text.ElideRight
-                        font: Theme.smallFont
-                        color: Theme.muted
+                        font: root.theme.smallFont
+                        color: root.theme.muted
                     }
                     Basic.Button {
                         id: clearButton
@@ -139,9 +140,9 @@ Basic.ToolButton {
                         property bool armed: false
                         text: armed ? "Confirm clear" : "Clear all"
                         enabled: root.service.entries.length > 0
-                        font: Theme.smallFont
-                        palette.button: Theme.surface
-                        palette.buttonText: Theme.foreground
+                        font: root.theme.smallFont
+                        palette.button: root.theme.surface
+                        palette.buttonText: root.theme.foreground
                         onClicked: {
                             if (armed) { root.service.clear(); armed = false; }
                             else armed = true;
@@ -152,9 +153,9 @@ Basic.ToolButton {
                         objectName: "notificationCancelClear"
                         visible: clearButton.armed
                         text: "Cancel"
-                        font: Theme.smallFont
-                        palette.button: Theme.surface
-                        palette.buttonText: Theme.foreground
+                        font: root.theme.smallFont
+                        palette.button: root.theme.surface
+                        palette.buttonText: root.theme.foreground
                         onClicked: clearButton.armed = false
                     }
                 }
@@ -165,18 +166,18 @@ Basic.ToolButton {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true
-                    spacing: Theme.spacing.small
+                    spacing: root.theme.spacing.small
                     model: root.service.history
                     highlight: Rectangle {
                         z: 2
                         visible: history.activeFocus
                         color: "transparent"
-                        radius: Theme.radius.medium
+                        radius: root.theme.radius.medium
                         border.width: 2
-                        border.color: Theme.focusBorder
+                        border.color: root.theme.focusBorder
                     }
                     Basic.ScrollBar.vertical: Basic.ScrollBar {}
-                    delegate: NotificationCard {
+                    delegate: NotificationCard { theme: root.theme;
                         required property var modelData
                         width: history.width
                         entry: modelData
@@ -186,16 +187,16 @@ Basic.ToolButton {
                         anchors.centerIn: parent
                         visible: history.count === 0
                         text: "No notifications"
-                        font: Theme.font
-                        color: Theme.muted
+                        font: root.theme.font
+                        color: root.theme.muted
                     }
                 }
                 Basic.Button {
                     Layout.fillWidth: true
                     text: "Close"
-                    font: Theme.smallFont
-                    palette.button: Theme.surface
-                    palette.buttonText: Theme.foreground
+                    font: root.theme.smallFont
+                    palette.button: root.theme.surface
+                    palette.buttonText: root.theme.foreground
                     onClicked: popup.visible = false
                 }
             }

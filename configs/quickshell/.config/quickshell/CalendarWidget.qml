@@ -5,9 +5,10 @@ import QtQuick
 
 ColumnLayout {
     id: layout
+    required property ScreenTheme theme
     anchors.fill: parent
-    anchors.margins: Theme.widget.padding
-    spacing: Theme.spacing.small
+    anchors.margins: layout.theme.widget.padding
+    spacing: layout.theme.spacing.small
 
     function changeMonth(change: int): void {
         const month = grid.month + change;
@@ -24,32 +25,32 @@ ColumnLayout {
     component CalendarButton: ToolButton {
         id: button
         required property int changeValue
-        font: Theme.iconFont
-        implicitWidth: Theme.iconFont.pixelSize + 2 * Theme.spacing.small
+        font: layout.theme.iconFont
+        implicitWidth: layout.theme.iconFont.pixelSize + 2 * layout.theme.spacing.small
         implicitHeight: implicitWidth
-        padding: Theme.spacing.small
+        padding: layout.theme.spacing.small
         hoverEnabled: true
         onClicked: layout.changeMonth(changeValue)
 
-        contentItem: MaterialIcon {
+        contentItem: MaterialIcon { theme: layout.theme;
             text: button.text
             font: button.font
-            color: button.enabled ? Theme.foreground : Theme.muted
+            color: button.enabled ? layout.theme.foreground : layout.theme.muted
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }
 
         background: Rectangle {
-            radius: Theme.radius.small
-            color: button.down ? Theme.surfacePressed : button.hovered ? Theme.surfaceHover : Theme.surface
-            border.width: button.visualFocus ? Theme.widget.borderWidth : 0
-            border.color: Theme.focusBorder
+            radius: layout.theme.radius.small
+            color: button.down ? layout.theme.surfacePressed : button.hovered ? layout.theme.surfaceHover : layout.theme.surface
+            border.width: button.visualFocus ? layout.theme.widget.borderWidth : 0
+            border.color: layout.theme.focusBorder
         }
     }
 
     RowLayout {
         Layout.fillWidth: true
-        spacing: Theme.spacing.small
+        spacing: layout.theme.spacing.small
         CalendarButton {
             text: "chevron_left"
             Accessible.name: "Previous month"
@@ -59,8 +60,8 @@ ColumnLayout {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             text: grid.locale.toString(new Date(grid.year, grid.month, 1), "MMMM yyyy")
-            font: Theme.font
-            color: Theme.foreground
+            font: layout.theme.font
+            color: layout.theme.foreground
         }
         CalendarButton {
             text: "chevron_right"
@@ -73,13 +74,13 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
         columns: 2
-        columnSpacing: Theme.spacing.medium
-        rowSpacing: Theme.spacing.small
+        columnSpacing: layout.theme.spacing.medium
+        rowSpacing: layout.theme.spacing.small
 
         DayOfWeekRow {
             locale: grid.locale
-            font: Theme.font
-            palette.text: Theme.muted
+            font: layout.theme.font
+            palette.text: layout.theme.muted
             spacing: grid.spacing
             Layout.column: 1
             Layout.fillWidth: true
@@ -90,8 +91,8 @@ ColumnLayout {
             month: grid.month
             year: grid.year
             locale: grid.locale
-            font: Theme.smallFont
-            palette.text: Theme.muted
+            font: layout.theme.smallFont
+            palette.text: layout.theme.muted
             spacing: grid.spacing
 
             Layout.fillHeight: true
@@ -111,9 +112,9 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            font: Theme.font
-            palette.text: Theme.foreground
-            spacing: Theme.spacing.small
+            font: layout.theme.font
+            palette.text: layout.theme.foreground
+            spacing: layout.theme.spacing.small
 
             delegate: Text {
                 required property var model
@@ -122,7 +123,7 @@ ColumnLayout {
                 opacity: model.month === grid.month ? 1 : 0.5
                 text: grid.locale.toString(model.date, "d")
                 font: grid.font
-                color: model.today ? Theme.accent : grid.palette.text
+                color: model.today ? layout.theme.accent : grid.palette.text
             }
         }
     }

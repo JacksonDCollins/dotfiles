@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import Quickshell.Services.Mpris
 import QtQuick
+import QtQuick.Window
 import QtQuick.Controls.Basic as Basic
 import QtQuick.Layouts
 import Quickshell.Widgets
@@ -8,9 +9,10 @@ import Quickshell
 
 ColumnLayout {
     id: root
+    required property ScreenTheme theme
     anchors.fill: parent
-    anchors.margins: Theme.widget.padding
-    spacing: Theme.spacing.small
+    anchors.margins: root.theme.widget.padding
+    spacing: root.theme.spacing.small
     property bool userSwipe: false
     // PopupWindow uses a different proxy type; it cannot be cast to QsWindow.
     readonly property var shellWindow: QsWindow.window
@@ -37,16 +39,16 @@ ColumnLayout {
         id: control
         property bool stateAvailable: true
         property bool markUnavailable: false
-        implicitWidth: Math.max(Theme.bar.height, Theme.iconFont.pixelSize + 2 * Theme.spacing.small)
+        implicitWidth: Math.max(root.theme.bar.height, root.theme.iconFont.pixelSize + 2 * root.theme.spacing.small)
         implicitHeight: implicitWidth
-        padding: Theme.spacing.small
+        padding: root.theme.spacing.small
         hoverEnabled: true
-        font: Theme.iconFont
+        font: root.theme.iconFont
 
-        contentItem: MaterialIcon {
+        contentItem: MaterialIcon { theme: root.theme;
             text: control.text
             font: control.font
-            color: control.highlighted ? Theme.accent : control.enabled ? Theme.foreground : Theme.muted
+            color: control.highlighted ? root.theme.accent : control.enabled ? root.theme.foreground : root.theme.muted
             opacity: control.enabled ? 1 : 0.5
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -56,15 +58,15 @@ ColumnLayout {
             anchors.top: parent.top
             visible: control.markUnavailable && !control.enabled
             text: "×"
-            font: Theme.smallFont
-            color: Theme.muted
+            font: root.theme.smallFont
+            color: root.theme.muted
             Accessible.ignored: true
         }
         background: Rectangle {
-            radius: Theme.radius.small
-            color: control.down ? Theme.surfacePressed : control.hovered ? Theme.surfaceHover : "transparent"
-            border.color: Theme.focusBorder
-            border.width: control.visualFocus ? Theme.widget.borderWidth : 0
+            radius: root.theme.radius.small
+            color: control.down ? root.theme.surfacePressed : control.hovered ? root.theme.surfaceHover : "transparent"
+            border.color: root.theme.focusBorder
+            border.width: control.visualFocus ? root.theme.widget.borderWidth : 0
         }
     }
 
@@ -76,54 +78,54 @@ ColumnLayout {
         model: Media.players.map(p => p.identity || "Unknown player")
         onModelChanged: Qt.callLater(root.syncSelection)
         displayText: Media.selectedPlayer ? Media.selectedPlayer.identity || "Unknown player" : "Select player"
-        font: Theme.smallFont
+        font: root.theme.smallFont
         hoverEnabled: true
         implicitWidth: Math.min(root.width, contentItem.implicitWidth + leftPadding + rightPadding)
-        implicitHeight: Theme.bar.height
-        leftPadding: Theme.spacing.medium
-        rightPadding: Theme.spacing.medium + indicator.width + Theme.spacing.small
+        implicitHeight: root.theme.bar.height
+        leftPadding: root.theme.spacing.medium
+        rightPadding: root.theme.spacing.medium + indicator.width + root.theme.spacing.small
         Accessible.name: "Select media player"
         onActivated: index => Media.selectPlayer(Media.players[index])
 
-        palette.text: Theme.foreground
-        palette.buttonText: Theme.foreground
-        palette.highlightedText: Theme.foreground
-        palette.highlight: Theme.surfaceHover
-        palette.button: Theme.surface
-        palette.window: Theme.background
-        palette.windowText: Theme.foreground
-        palette.base: Theme.background
-        palette.alternateBase: Theme.surface
-        palette.light: Theme.surfaceHover
-        palette.midlight: Theme.surfacePressed
-        palette.mid: Theme.border
-        palette.dark: Theme.muted
-        palette.shadow: Theme.border
-        palette.placeholderText: Theme.muted
-        palette.disabled.text: Theme.muted
-        palette.disabled.buttonText: Theme.muted
-        palette.disabled.highlightedText: Theme.muted
+        palette.text: root.theme.foreground
+        palette.buttonText: root.theme.foreground
+        palette.highlightedText: root.theme.foreground
+        palette.highlight: root.theme.surfaceHover
+        palette.button: root.theme.surface
+        palette.window: root.theme.background
+        palette.windowText: root.theme.foreground
+        palette.base: root.theme.background
+        palette.alternateBase: root.theme.surface
+        palette.light: root.theme.surfaceHover
+        palette.midlight: root.theme.surfacePressed
+        palette.mid: root.theme.border
+        palette.dark: root.theme.muted
+        palette.shadow: root.theme.border
+        palette.placeholderText: root.theme.muted
+        palette.disabled.text: root.theme.muted
+        palette.disabled.buttonText: root.theme.muted
+        palette.disabled.highlightedText: root.theme.muted
 
         contentItem: Text {
             text: playerSelector.displayText
             font: playerSelector.font
-            color: Theme.foreground
+            color: root.theme.foreground
             textFormat: Text.PlainText
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
         }
-        indicator: MaterialIcon {
-            x: playerSelector.width - width - Theme.spacing.medium
+        indicator: MaterialIcon { theme: root.theme;
+            x: playerSelector.width - width - root.theme.spacing.medium
             anchors.verticalCenter: parent.verticalCenter
             text: "expand_more"
-            font: Theme.iconFont
-            color: Theme.muted
+            font: root.theme.iconFont
+            color: root.theme.muted
         }
         background: Rectangle {
             radius: height / 2
-            color: playerSelector.down ? Theme.surfacePressed : playerSelector.hovered ? Theme.surfaceHover : Theme.surface
-            border.color: playerSelector.visualFocus ? Theme.focusBorder : Theme.border
-            border.width: Theme.widget.borderWidth
+            color: playerSelector.down ? root.theme.surfacePressed : playerSelector.hovered ? root.theme.surfaceHover : root.theme.surface
+            border.color: playerSelector.visualFocus ? root.theme.focusBorder : root.theme.border
+            border.width: root.theme.widget.borderWidth
         }
         FontMetrics {
             id: optionMetrics
@@ -138,7 +140,7 @@ ColumnLayout {
             required property string modelData
             required property int index
             width: playerSelector.popup.availableWidth
-            padding: Theme.spacing.medium
+            padding: root.theme.spacing.medium
             text: modelData
             font.weight: playerSelector.currentIndex === index ? Font.DemiBold : Font.Normal
             highlighted: playerSelector.highlightedIndex === index
@@ -147,16 +149,16 @@ ColumnLayout {
             contentItem: Text {
                 text: option.text
                 font: option.font
-                color: option.enabled ? Theme.foreground : Theme.muted
+                color: option.enabled ? root.theme.foreground : root.theme.muted
                 textFormat: Text.PlainText
                 verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
             }
             background: Rectangle {
-                radius: Theme.radius.small
-                color: !option.enabled ? Theme.background : option.down ? Theme.surfacePressed : option.highlighted || option.hovered ? Theme.surfaceHover : Theme.background
-                border.color: Theme.focusBorder
-                border.width: option.visualFocus ? Theme.widget.borderWidth : 0
+                radius: root.theme.radius.small
+                color: !option.enabled ? root.theme.background : option.down ? root.theme.surfacePressed : option.highlighted || option.hovered ? root.theme.surfaceHover : root.theme.background
+                border.color: root.theme.focusBorder
+                border.width: option.visualFocus ? root.theme.widget.borderWidth : 0
             }
         }
         popup.contentItem: ListView {
@@ -166,24 +168,24 @@ ColumnLayout {
             highlightMoveDuration: 0
             clip: true
             Basic.ScrollIndicator.vertical: Basic.ScrollIndicator {
-                palette.mid: Theme.muted
-                palette.text: Theme.foreground
+                palette.mid: root.theme.muted
+                palette.text: root.theme.foreground
             }
         }
-        popup.padding: Theme.spacing.small
+        popup.padding: root.theme.spacing.small
         popup.width: {
             let widest = 0;
             for (const name of playerSelector.model)
                 widest = Math.max(widest, optionMetrics.advanceWidth(name));
-            return Math.min(root.width * 0.8, Math.ceil(widest) + 2 * (Theme.spacing.medium + playerSelector.popup.padding));
+            return Math.min(root.width * 0.8, Math.ceil(widest) + 2 * (root.theme.spacing.medium + playerSelector.popup.padding));
         }
         popup.x: (playerSelector.width - playerSelector.popup.width) / 2
         popup.height: Math.min(playerSelector.popup.contentItem.implicitHeight + 2 * playerSelector.popup.padding, root.height)
         popup.background: Rectangle {
-            color: Theme.background
-            radius: Theme.radius.medium
-            border.color: Theme.border
-            border.width: Theme.widget.borderWidth
+            color: root.theme.background
+            radius: root.theme.radius.medium
+            border.color: root.theme.border
+            border.width: root.theme.widget.borderWidth
         }
     }
 
@@ -192,8 +194,8 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
         text: "No media players detected"
-        font: Theme.font
-        color: Theme.muted
+        font: root.theme.font
+        color: root.theme.muted
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         wrapMode: Text.Wrap
@@ -234,7 +236,7 @@ ColumnLayout {
                 RowLayout {
                     id: mediaRow
                     anchors.fill: parent
-                    spacing: Theme.spacing.small
+                    spacing: root.theme.spacing.small
 
                     ClippingRectangle {
                         readonly property real diameter: {
@@ -253,7 +255,7 @@ ColumnLayout {
                         Layout.preferredHeight: diameter
                         Layout.alignment: Qt.AlignVCenter
                         radius: width / 2
-                        color: Theme.surface
+                        color: root.theme.surface
 
                         Image {
                             id: albumArt
@@ -265,18 +267,18 @@ ColumnLayout {
                         }
                         Rectangle {
                             anchors.fill: parent
-                            color: Theme.background
+                            color: root.theme.background
                             opacity: 0.6
                             visible: loadingIndicator.running
                         }
                         Basic.BusyIndicator {
                             id: loadingIndicator
                             anchors.centerIn: parent
-                            width: Theme.bar.height
+                            width: root.theme.bar.height
                             height: width
                             running: page.updating || albumArt.status === Image.Loading
                             visible: running
-                            palette.dark: Theme.accent
+                            palette.dark: root.theme.accent
                             Accessible.name: page.updating ? "Waiting for track information" : "Loading artwork"
                         }
                         Basic.ToolButton {
@@ -298,8 +300,8 @@ ColumnLayout {
                             background: Rectangle {
                                 radius: width / 2
                                 color: "transparent"
-                                border.color: openPlayer.visualFocus ? Theme.focusBorder : Theme.muted
-                                border.width: openPlayer.enabled && (openPlayer.visualFocus || openPlayer.hovered) ? Theme.widget.borderWidth : 0
+                                border.color: openPlayer.visualFocus ? root.theme.focusBorder : root.theme.muted
+                                border.width: openPlayer.enabled && (openPlayer.visualFocus || openPlayer.hovered) ? root.theme.widget.borderWidth : 0
                             }
                         }
                     }
@@ -307,13 +309,13 @@ ColumnLayout {
                     ColumnLayout {
                         Layout.fillWidth: true
                         Layout.minimumWidth: playbackControls.implicitWidth
-                        spacing: Theme.spacing.small
+                        spacing: root.theme.spacing.small
                         opacity: page.updating ? 0.5 : 1
                         Text {
                             Layout.fillWidth: true
                             text: metadata.track.title || "No track information"
-                            font: Theme.font
-                            color: Theme.foreground
+                            font: root.theme.font
+                            color: root.theme.foreground
                             textFormat: Text.PlainText
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
@@ -325,8 +327,8 @@ ColumnLayout {
                             Layout.fillWidth: true
                             text: metadata.track.album
                             visible: text.length > 0
-                            font: Theme.font
-                            color: Theme.muted
+                            font: root.theme.font
+                            color: root.theme.muted
                             textFormat: Text.PlainText
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
@@ -335,13 +337,13 @@ ColumnLayout {
                             Layout.fillWidth: true
                             text: metadata.track.artist
                             visible: text.length > 0
-                            font: Theme.font
-                            color: Theme.muted
+                            font: root.theme.font
+                            color: root.theme.muted
                             textFormat: Text.PlainText
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
                         }
-                        MediaSeekBar {
+                        MediaSeekBar { theme: root.theme;
                             Layout.fillWidth: true
                             sourcePlayer: page.modelData
                             updating: page.updating
@@ -350,7 +352,7 @@ ColumnLayout {
                         RowLayout {
                             id: playbackControls
                             Layout.alignment: Qt.AlignHCenter
-                            spacing: Theme.spacing.small
+                            spacing: root.theme.spacing.small
                             readonly property bool playing: page.modelData && page.modelData.playbackState === MprisPlaybackState.Playing
                             enabled: page.modelData && page.modelData.canControl && !page.updating
 
@@ -410,11 +412,11 @@ ColumnLayout {
                         id: volumeSlider
                         Layout.preferredWidth: implicitWidth
                         Layout.fillHeight: true
-                        Layout.maximumHeight: Theme.bar.height * 4
+                        Layout.maximumHeight: root.theme.bar.height * 4
                         Layout.alignment: Qt.AlignVCenter
-                        implicitWidth: Theme.bar.height
+                        implicitWidth: root.theme.bar.height
                         orientation: Qt.Vertical
-                        padding: Theme.spacing.small
+                        padding: root.theme.spacing.small
                         from: 0
                         to: 1
                         stepSize: 0.05
@@ -429,29 +431,29 @@ ColumnLayout {
                         background: Rectangle {
                             x: (volumeSlider.width - width) / 2
                             y: volumeSlider.topPadding
-                            width: Theme.spacing.small
+                            width: root.theme.spacing.small
                             height: volumeSlider.availableHeight
                             radius: width / 2
-                            color: Theme.surface
+                            color: root.theme.surface
                             Rectangle {
                                 anchors.bottom: parent.bottom
                                 width: parent.width
                                 height: parent.height * volumeSlider.position
                                 visible: page.modelData?.volumeSupported ?? false
                                 radius: parent.radius
-                                color: volumeSlider.enabled ? Theme.accent : Theme.muted
+                                color: volumeSlider.enabled ? root.theme.accent : root.theme.muted
                             }
                         }
                         handle: Rectangle {
                             visible: page.modelData?.volumeSupported ?? false
                             x: (volumeSlider.width - width) / 2
                             y: volumeSlider.topPadding + volumeSlider.visualPosition * (volumeSlider.availableHeight - height)
-                            implicitWidth: Theme.spacing.medium
+                            implicitWidth: root.theme.spacing.medium
                             implicitHeight: implicitWidth
                             radius: width / 2
-                            color: !volumeSlider.enabled ? Theme.muted : volumeSlider.visualFocus ? Theme.foreground : Theme.accent
-                            border.color: Theme.focusBorder
-                            border.width: volumeSlider.visualFocus ? Theme.widget.borderWidth : 0
+                            color: !volumeSlider.enabled ? root.theme.muted : volumeSlider.visualFocus ? root.theme.foreground : root.theme.accent
+                            border.color: root.theme.focusBorder
+                            border.width: volumeSlider.visualFocus ? root.theme.widget.borderWidth : 0
                         }
                     }
                 }

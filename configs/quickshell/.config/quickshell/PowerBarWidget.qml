@@ -7,6 +7,7 @@ import QtQuick.Layouts
 
 Basic.ToolButton {
     id: root
+    required property ScreenTheme theme
     required property var service
     property string selection: ""
     readonly property var selected: service.backlights.find(d => d.name === selection) || service.backlights[0] || null
@@ -20,37 +21,37 @@ Basic.ToolButton {
     onDeviceNameChanged: pending = null
     visible: service.available
     onVisibleChanged: if (!visible) popup.visible = false
-    implicitWidth: icon.implicitWidth + 2 * Theme.spacing.medium
+    implicitWidth: icon.implicitWidth + 2 * root.theme.spacing.medium
     implicitHeight: metrics.height
     padding: 0
     hoverEnabled: true
     Accessible.name: service.hasBattery ? "Battery " + service.percent + " percent, " + service.status : "Screen brightness"
     onClicked: popup.visible = !popup.visible
-    FontMetrics { id: metrics; font: Theme.font }
+    FontMetrics { id: metrics; font: root.theme.font }
     background: Rectangle {
-        radius: Theme.radius.medium
-        color: root.down ? Theme.surfacePressed : root.hovered ? Theme.surfaceHover : Theme.background
-        border.width: root.visualFocus ? Theme.widget.borderWidth : 0
-        border.color: Theme.focusBorder
+        radius: root.theme.radius.medium
+        color: root.down ? root.theme.surfacePressed : root.hovered ? root.theme.surfaceHover : root.theme.background
+        border.width: root.visualFocus ? root.theme.widget.borderWidth : 0
+        border.color: root.theme.focusBorder
     }
-    contentItem: MaterialIcon {
+    contentItem: MaterialIcon { theme: root.theme;
         id: icon
         text: !root.service.hasBattery ? "brightness_6"
             : root.service.battery.state === UPowerDeviceState.Charging ? "battery_charging_full"
             : root.service.percent <= 15 ? "battery_alert" : root.service.percent < 40 ? "battery_2_bar"
             : root.service.percent < 75 ? "battery_4_bar" : "battery_full"
-        color: root.service.warningLevel === 2 ? Theme.error : root.service.warningLevel === 1 ? Theme.warning : Theme.foreground
+        color: root.service.warningLevel === 2 ? root.theme.error : root.service.warningLevel === 1 ? root.theme.warning : root.theme.foreground
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font: Qt.font({family: Theme.iconFont.family, pixelSize: Theme.font.pixelSize, variableAxes: Theme.iconFont.variableAxes})
+        font: Qt.font({family: root.theme.iconFont.family, pixelSize: root.theme.font.pixelSize, variableAxes: root.theme.iconFont.variableAxes})
     }
-    DesktopPopup {
+    DesktopPopup { theme: root.theme;
         id: popup
         anchor.item: root
         anchor.edges: Edges.Bottom | Edges.Right
         anchor.gravity: Edges.Bottom | Edges.Left
-        preferredWidth: 360
-        preferredHeight: content.implicitHeight + 2 * Theme.widget.padding
+        preferredWidth: root.theme.popups.power.width
+        preferredHeight: root.theme.popups.power.height || content.implicitHeight + 2 * root.theme.widget.padding
         color: "transparent"
         grabFocus: true
         onVisibleChanged: {
@@ -60,35 +61,35 @@ Basic.ToolButton {
         Timer { interval: 2000; running: popup.visible; repeat: true; onTriggered: root.service.refresh() }
         Rectangle {
             anchors.fill: parent
-            radius: Theme.radius.large
-            color: Theme.background
-            border.color: Theme.border
-            border.width: Theme.widget.borderWidth
+            radius: root.theme.radius.large
+            color: root.theme.background
+            border.color: root.theme.border
+            border.width: root.theme.widget.borderWidth
             ColumnLayout {
                 id: content
-                anchors { left: parent.left; right: parent.right; top: parent.top; margins: Theme.widget.padding }
-                spacing: Theme.spacing.medium
+                anchors { left: parent.left; right: parent.right; top: parent.top; margins: root.theme.widget.padding }
+                spacing: root.theme.spacing.medium
                 Keys.onEscapePressed: popup.visible = false
-                Text { text: "Power"; color: Theme.foreground; font: Theme.largeFont }
+                Text { text: "Power"; color: root.theme.foreground; font: root.theme.largeFont }
                 Text {
                     visible: root.service.hasBattery
                     text: root.service.percent + "% · " + root.service.status
-                    font: Theme.font
-                    color: root.service.warningLevel === 2 ? Theme.error : Theme.foreground
+                    font: root.theme.font
+                    color: root.service.warningLevel === 2 ? root.theme.error : root.theme.foreground
                 }
                 Text {
                     Layout.fillWidth: true
                     visible: root.service.estimate !== ""
                     text: root.service.estimate
                     wrapMode: Text.WordWrap
-                    font: Theme.smallFont
-                    color: Theme.muted
+                    font: root.theme.smallFont
+                    color: root.theme.muted
                 }
                 Text {
                     visible: root.selected !== null
                     text: "Screen brightness"
-                    font: Theme.font
-                    color: Theme.foreground
+                    font: root.theme.font
+                    color: root.theme.foreground
                 }
                 Basic.ComboBox {
                     Layout.fillWidth: true
@@ -96,15 +97,15 @@ Basic.ToolButton {
                     model: root.service.backlights.map(d => d.name)
                     currentIndex: model.indexOf(root.deviceName)
                     onActivated: index => root.selection = model[index]
-                    font: Theme.smallFont
-                    palette.button: Theme.surface
-                    palette.buttonText: Theme.foreground
-                    palette.text: Theme.foreground
-                    palette.base: Theme.surface
-                    palette.window: Theme.background
-                    palette.mid: Theme.border
-                    palette.highlight: Theme.accent
-                    palette.highlightedText: Theme.background
+                    font: root.theme.smallFont
+                    palette.button: root.theme.surface
+                    palette.buttonText: root.theme.foreground
+                    palette.text: root.theme.foreground
+                    palette.base: root.theme.surface
+                    palette.window: root.theme.background
+                    palette.mid: root.theme.border
+                    palette.highlight: root.theme.accent
+                    palette.highlightedText: root.theme.background
                     Accessible.name: "Backlight device"
                 }
                 RowLayout {
@@ -117,11 +118,11 @@ Basic.ToolButton {
                         to: 100
                         stepSize: 1
                         enabled: root.selected !== null && !root.service.busy
-                        palette.highlight: Theme.accent
-                        palette.button: Theme.foreground
-                        palette.mid: Theme.surfaceHover
-                        palette.dark: Theme.surfacePressed
-                        palette.light: Theme.surfaceHover
+                        palette.highlight: root.theme.accent
+                        palette.button: root.theme.foreground
+                        palette.mid: root.theme.surfaceHover
+                        palette.dark: root.theme.surfacePressed
+                        palette.light: root.theme.surfaceHover
                         Accessible.name: "Screen brightness"
                         onMoved: {
                             root.pending = {name: root.deviceName, value: value};
@@ -138,8 +139,8 @@ Basic.ToolButton {
                     }
                     Text {
                         text: (brightness.pressed || root.service.busy ? Math.round(brightness.value) : root.selected ? root.selected.percent : 0) + "%"
-                        font: Theme.smallFont
-                        color: Theme.foreground
+                        font: root.theme.smallFont
+                        color: root.theme.foreground
                     }
                 }
                 Text {
@@ -148,15 +149,15 @@ Basic.ToolButton {
                     text: root.service.message
                     textFormat: Text.PlainText
                     wrapMode: Text.WordWrap
-                    font: Theme.smallFont
-                    color: Theme.error
+                    font: root.theme.smallFont
+                    color: root.theme.error
                 }
                 Basic.Button {
                     Layout.fillWidth: true
                     text: "Close"
-                    font: Theme.smallFont
-                    palette.button: Theme.surface
-                    palette.buttonText: Theme.foreground
+                    font: root.theme.smallFont
+                    palette.button: root.theme.surface
+                    palette.buttonText: root.theme.foreground
                     onClicked: popup.visible = false
                 }
             }

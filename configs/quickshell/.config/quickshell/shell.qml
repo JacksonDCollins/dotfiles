@@ -10,4 +10,5 @@ ShellRoot {
     Wallpaper {}
     Bar { notificationService: notifications; powerService: power }
     NotificationToasts { service: notifications }
+    MediaOsd {}
 }

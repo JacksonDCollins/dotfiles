@@ -21,6 +21,7 @@ Scope {
     // Overflow scrolls instead of covering the clock; tab focus reveals clipped controls.
     component BarStrip: Flickable {
         id: strip
+        required property ScreenTheme theme
         clip: true
         contentHeight: height
         boundsBehavior: Flickable.StopAtBounds
@@ -42,7 +43,7 @@ Scope {
         WheelHandler {
             enabled: strip.contentWidth > strip.width
             onWheel: event => {
-                const delta = event.pixelDelta.y || event.angleDelta.y / 120 * Theme.bar.height * 2;
+                const delta = event.pixelDelta.y || event.angleDelta.y / 120 * strip.theme.bar.height * 2;
                 if (!delta) { event.accepted = false; return; }
                 strip.contentX = Math.max(0, Math.min(strip.contentWidth - strip.width, strip.contentX - delta));
                 event.accepted = true;
@@ -50,44 +51,47 @@ Scope {
         }
         Basic.ScrollBar.horizontal: Basic.ScrollBar {
             height: 3
-            palette.mid: Theme.muted
+            palette.mid: strip.theme.muted
         }
     }
     Variants {
         model: Quickshell.screens
         delegate: PanelWindow {
             id: container
+            readonly property ScreenTheme theme: Theme.forScreen(modelData)
             required property var modelData
             readonly property bool keyboardActive: root.keyboardScreen !== "" && root.keyboardScreen === screen.name
-            readonly property real sideWidth: Math.max(0, (width - clockWidget.width) / 2 - Theme.spacing.small)
+            readonly property real sideWidth: Math.max(0, (width - clockWidget.width) / 2 - container.theme.spacing.small)
             screen: modelData
             anchors { top: true; left: true; right: true }
-            implicitHeight: Theme.bar.height
-            color: Theme.bar.background
+            implicitHeight: container.theme.bar.height
+            color: container.theme.bar.background
             WlrLayershell.keyboardFocus: keyboardActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
             onKeyboardActiveChanged: if (keyboardActive) contentItem.forceActiveFocus(Qt.ShortcutFocusReason)
             contentItem.Keys.onEscapePressed: root.keyboardScreen = ""
             Item {
                 anchors.fill: parent
                 BarStrip {
+                    theme: container.theme
                     id: workspaceStrip
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                     width: Math.min(contentWidth, container.sideWidth)
                     height: parent.height
                     contentWidth: workspaces.implicitWidth
-                    Workspaces {
+                    Workspaces { theme: container.theme;
                         id: workspaces
-                        maximumButtonWidth: Math.max(1, Math.min(120, container.sideWidth))
+                        maximumButtonWidth: Math.max(1, Math.min(container.theme.bar.workspaceMaxWidth, container.sideWidth))
                         anchors.verticalCenter: parent.verticalCenter
-                        leftPadding: Theme.spacing.medium
+                        leftPadding: container.theme.bar.padding
                     }
                 }
-                ClockWidget {
+                ClockWidget { theme: container.theme;
                     id: clockWidget
-                    compact: container.width < 900
+                    compact: container.width < container.theme.bar.compactWidth
                     anchors.centerIn: parent
                 }
                 BarStrip {
+                    theme: container.theme
                     id: controlsStrip
                     anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                     width: Math.min(contentWidth, container.sideWidth)
@@ -96,24 +100,24 @@ Scope {
                     Row {
                         id: controls
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: Theme.spacing.small
-                        rightPadding: Theme.spacing.medium
-                        PlayerBarWidget {
+                        spacing: container.theme.bar.spacing
+                        rightPadding: container.theme.bar.padding
+                        PlayerBarWidget { theme: container.theme;
                             anchors.verticalCenter: parent.verticalCenter
-                            maximumWidth: Math.min(320, Math.max(0, container.sideWidth - builtinWidgets.implicitWidth
+                            maximumWidth: Math.min(container.theme.bar.playerMaxWidth, Math.max(0, container.sideWidth - builtinWidgets.implicitWidth
                                 - tray.implicitWidth - controls.rightPadding - 2 * controls.spacing))
                         }
-                        SystemTrayWidget { id: tray; visible: implicitWidth > 0; anchors.verticalCenter: parent.verticalCenter }
+                        SystemTrayWidget { theme: container.theme; id: tray; visible: implicitWidth > 0; anchors.verticalCenter: parent.verticalCenter }
                         Row {
                             id: builtinWidgets
                             anchors.verticalCenter: parent.verticalCenter
-                            spacing: Theme.spacing.small
-                            AudioBarWidget {}
-                            NetworkBarWidget {}
-                            BluetoothBarWidget {}
-                            PowerBarWidget { service: root.powerService }
-                            NotificationBarWidget { service: root.notificationService }
-                            SessionBarWidget {}
+                            spacing: container.theme.bar.spacing
+                            AudioBarWidget { theme: container.theme;}
+                            NetworkBarWidget { theme: container.theme;}
+                            BluetoothBarWidget { theme: container.theme;}
+                            PowerBarWidget { theme: container.theme; service: root.powerService }
+                            NotificationBarWidget { theme: container.theme; service: root.notificationService }
+                            SessionBarWidget { theme: container.theme;}
                         }
                     }
                 }

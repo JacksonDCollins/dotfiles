@@ -9,9 +9,10 @@ import QtQml.Models
 
 Basic.Menu {
     id: root
+    required property ScreenTheme theme
     required property QsMenuHandle handle
     property QsMenuEntry entry: null
-    property int maximumWidth: 320
+    property int maximumWidth: root.theme.popups.tray.width
 
     title: entry ? entry.text : ""
     enabled: !entry || entry.enabled
@@ -19,15 +20,19 @@ Basic.Menu {
     icon.color: "transparent"
     popupType: Popup.Window
     cascade: true
-    padding: Theme.widget.padding
-    spacing: Theme.spacing.small
+    padding: root.theme.widget.padding
+    spacing: root.theme.spacing.small
 
     implicitWidth: {
         let widest = 0;
         for (let i = 0; i < count; i++)
             widest = Math.max(widest, itemAt(i).implicitWidth);
-        return Math.min(maximumWidth, Math.ceil(widest) + leftPadding + rightPadding);
+        return Math.max(1, Math.min(maximumWidth, root.theme.screen.width - 2 * root.theme.spacing.small, Math.ceil(widest) + leftPadding + rightPadding));
     }
+
+    implicitHeight: Math.max(1, Math.min(contentItem.implicitHeight + topPadding + bottomPadding,
+        root.theme.popups.tray.height || root.theme.screen.height,
+        root.theme.screen.height - 2 * root.theme.spacing.small))
 
     contentItem: ListView {
         implicitHeight: contentHeight
@@ -37,16 +42,16 @@ Basic.Menu {
         clip: true
         interactive: contentHeight > height
         ScrollIndicator.vertical: Basic.ScrollIndicator {
-            palette.mid: Theme.muted
-            palette.text: Theme.foreground
+            palette.mid: root.theme.muted
+            palette.text: root.theme.foreground
         }
     }
 
     background: Rectangle {
-        color: Theme.background
-        radius: Theme.radius.large
-        border.color: Theme.border
-        border.width: Theme.widget.borderWidth
+        color: root.theme.background
+        radius: root.theme.radius.large
+        border.color: root.theme.border
+        border.width: root.theme.widget.borderWidth
     }
 
     // Qt creates this delegate for insertMenu(), including its submenu behavior.
@@ -63,26 +68,26 @@ Basic.Menu {
         enabled: !entry || entry.enabled
         checkable: entry && entry.buttonType !== QsMenuButtonType.None
         checked: entry && entry.checkState === Qt.Checked
-        font: Theme.font
-        padding: Theme.spacing.medium
+        font: root.theme.font
+        padding: root.theme.spacing.medium
         hoverEnabled: true
         indicator: null
         arrow: null
 
         background: Rectangle {
-            radius: Theme.radius.small
-            color: action.down ? Theme.surfacePressed : action.highlighted ? Theme.surfaceHover : Theme.background
-            border.color: Theme.focusBorder
-            border.width: action.visualFocus ? Theme.widget.borderWidth : 0
+            radius: root.theme.radius.small
+            color: action.down ? root.theme.surfacePressed : action.highlighted ? root.theme.surfaceHover : root.theme.background
+            border.color: root.theme.focusBorder
+            border.width: action.visualFocus ? root.theme.widget.borderWidth : 0
         }
 
         contentItem: RowLayout {
-            spacing: Theme.spacing.small
+            spacing: root.theme.spacing.small
 
-            MaterialIcon {
+            MaterialIcon { theme: root.theme;
                 visible: action.checkable
-                font: Theme.iconFont
-                color: action.enabled ? Theme.foreground : Theme.muted
+                font: root.theme.iconFont
+                color: action.enabled ? root.theme.foreground : root.theme.muted
                 text: {
                     if (!action.entry)
                         return "";
@@ -98,23 +103,23 @@ Basic.Menu {
             IconImage {
                 visible: action.entry && action.entry.icon !== ""
                 source: action.entry ? action.entry.icon : ""
-                implicitSize: Theme.font.pixelSize
+                implicitSize: root.theme.font.pixelSize
             }
 
             Text {
                 Layout.fillWidth: true
                 text: action.text
                 font: action.font
-                color: action.enabled ? Theme.foreground : Theme.muted
+                color: action.enabled ? root.theme.foreground : root.theme.muted
                 textFormat: Text.PlainText
                 wrapMode: Text.Wrap
             }
 
-            MaterialIcon {
+            MaterialIcon { theme: root.theme;
                 visible: action.subMenu !== null
                 text: "chevron_right"
-                font: Theme.iconFont
-                color: action.enabled ? Theme.foreground : Theme.muted
+                font: root.theme.iconFont
+                color: action.enabled ? root.theme.foreground : root.theme.muted
             }
         }
 
@@ -175,6 +180,7 @@ Basic.Menu {
                 if (kind === 2) {
                     setSource(Qt.resolvedUrl("TrayMenu.qml"), {
                         handle: modelData,
+                        theme: Qt.binding(() => root.theme),
                         entry: modelData,
                         maximumWidth: Qt.binding(() => root.maximumWidth)
                     });
@@ -204,10 +210,10 @@ Basic.Menu {
             Component {
                 id: separatorComponent
                 Basic.MenuSeparator {
-                    padding: Theme.spacing.small
+                    padding: root.theme.spacing.small
                     contentItem: Rectangle {
-                        implicitHeight: Theme.widget.borderWidth
-                        color: Theme.border
+                        implicitHeight: root.theme.widget.borderWidth
+                        color: root.theme.border
                     }
                 }
             }
