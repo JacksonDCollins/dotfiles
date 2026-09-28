@@ -1,5 +1,5 @@
 [Unit]
-Description=Quickshell desktop wallpaper
+Description=Quickshell desktop and notification center
 PartOf=graphical-session.target
 After=graphical-session.target
 ConditionEnvironment=WAYLAND_DISPLAY

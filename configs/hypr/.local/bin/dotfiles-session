@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Authentication stays in Hyprlock/PAM; confirm compositor locking via hypridle.
+set -euo pipefail
+
+die() { printf 'Session: %s\n' "$*" >&2; exit 1; }
+[[ $# == 1 ]] || die 'Expected one action.'
+action=$1
+case "$action" in
+    logout) exec uwsm stop ;;
+    reboot|poweroff) exec systemctl --check-inhibitors=yes "$action" ;;
+    lock|suspend) ;;
+    *) die 'Unknown action.' ;;
+esac
+
+command -v hyprlock >/dev/null || die 'Install hyprlock first.'
+systemctl --user is-active --quiet hypridle.service || die 'Start hypridle.service first.'
+pid=$(systemctl --user show --property=MainPID --value hypridle.service)
+[[ $pid =~ ^[1-9][0-9]*$ ]] || die 'Could not identify hypridle.'
+owner=$(busctl --user --timeout=2s call org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus GetNameOwner s org.freedesktop.ScreenSaver) || die 'No lock-notification service.'
+[[ $owner =~ ^s\ \"(:[0-9]+\.[0-9]+)\"$ ]] || die 'Unexpected lock-service identity.'
+owner=${BASH_REMATCH[1]}
+actual_pid=$(busctl --user --timeout=2s call org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus GetConnectionUnixProcessID s "$owner")
+[[ $actual_pid == "u $pid" ]] || die 'ScreenSaver D-Bus service is not owned by hypridle.'
+
+# Use the verified unique bus owner, not a replaceable well-known name. Hypridle
+# v0.1.8 GetActive reports its compositor lock notification, not process existence.
+for ((attempt = 0; attempt < 80; attempt++)); do
+    locked=$(busctl --user --timeout=2s call "$owner" /org/freedesktop/ScreenSaver org.freedesktop.ScreenSaver GetActive) || die 'Could not confirm compositor lock state.'
+    case "$locked" in
+        'b true')
+            if [[ $action == suspend ]]; then
+                exec systemctl --check-inhibitors=yes suspend
+            fi
+            exit 0
+            ;;
+        'b false') ;;
+        *) die 'Unexpected lock state; suspend refused.' ;;
+    esac
+    if (( attempt == 0 )); then
+        systemctl --user start hyprlock.service || die 'Could not start the lock screen.'
+    else
+        systemctl --user is-active --quiet hyprlock.service || die 'Lock screen exited before lock confirmation.'
+    fi
+    sleep 0.1
+done
+die 'No compositor lock confirmation; suspend was not requested.'

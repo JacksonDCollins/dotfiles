@@ -16,7 +16,7 @@ Row {
             implicitHeight: Theme.bar.height
             padding: Theme.spacing.small
             hoverEnabled: true
-            Accessible.name: modelData.title
+            Accessible.name: modelData.title || modelData.tooltipTitle || modelData.id || "Tray application"
 
             contentItem: IconImage {
                 implicitSize: Math.max(1, Theme.bar.height - 2 * Theme.spacing.small)

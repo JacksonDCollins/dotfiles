@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=uuctl
+GenericName=User unit manager
+Comment=Manage user systemd units with readable tmux pane labels
+Exec=/bin/sh -c "exec \\"\\$HOME/.local/bin/dotfiles-uuctl\\""
+Icon=applications-system
+Terminal=false
+Type=Application
+Categories=Utility;Settings;
+Keywords=units;services;systemd;session;tmux;

@@ -21,3 +21,4 @@ fi
 bash "$repo/install.sh" "$profile"
 bash "$repo/install-tmux-plugins.sh"
 bash "$repo/install-runtimes.sh"
+bash "$repo/install-zsh-plugins.sh"

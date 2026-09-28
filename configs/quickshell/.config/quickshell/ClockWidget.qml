@@ -1,20 +1,24 @@
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
-import QtQuick.Controls
+import QtQuick.Controls.Basic as Basic
 
-Rectangle {
+Basic.ToolButton {
     id: clock
-    implicitWidth: label.width
-    implicitHeight: label.height
-    radius: Theme.radius.medium
-    color: Theme.background
-
-    TapHandler {
-        onTapped: popup.visible = !popup.visible
+    property bool compact: false
+    implicitWidth: label.implicitWidth
+    implicitHeight: label.implicitHeight
+    padding: 0
+    hoverEnabled: true
+    Accessible.name: "Calendar, " + Time.time("dddd h:mm")
+    onClicked: popup.visible = !popup.visible
+    background: Rectangle {
+        radius: Theme.radius.medium
+        color: clock.down ? Theme.surfacePressed : clock.hovered ? Theme.surfaceHover : Theme.background
+        border.color: Theme.focusBorder
+        border.width: clock.visualFocus ? Theme.widget.borderWidth : 0
     }
 
-    PopupWindow {
+    DesktopPopup {
         id: popup
         color: "transparent"
 
@@ -22,8 +26,8 @@ Rectangle {
         anchor.edges: Edges.Bottom
         anchor.gravity: Edges.Bottom
 
-        implicitWidth: 320 //Hyprland.focusedMonitor.width * 1 / 2
-        implicitHeight: 200 //Hyprland.focusedMonitor.height * 1 / 3
+        preferredWidth: 320
+        preferredHeight: 250
 
         grabFocus: true
 
@@ -46,10 +50,11 @@ Rectangle {
         }
     }
 
-    Text {
+    contentItem: Text {
         id: label
-        anchors.centerIn: parent
-        text: Time.time("dddd h:mm")
+        text: Time.time(clock.compact ? "h:mm" : "dddd h:mm")
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
         font: Theme.font
         leftPadding: Theme.spacing.medium
         rightPadding: Theme.spacing.medium

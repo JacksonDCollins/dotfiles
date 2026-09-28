@@ -1,14 +1,23 @@
 import Quickshell
 import Quickshell.Services.Mpris
 import QtQuick
+import QtQuick.Controls.Basic as Basic
 
-Rectangle {
+Basic.ToolButton {
     id: player
     property real maximumWidth: 320
     implicitWidth: content.implicitWidth
     implicitHeight: trackLabel.implicitHeight
-    radius: Theme.radius.medium
-    color: Theme.background
+    padding: 0
+    hoverEnabled: true
+    Accessible.name: "Media controls" + (activePlayer ? ": " + (metadata.track.title || activePlayer.identity) : "")
+    onClicked: popup.visible = !popup.visible
+    background: Rectangle {
+        radius: Theme.radius.medium
+        color: player.down ? Theme.surfacePressed : player.hovered ? Theme.surfaceHover : Theme.background
+        border.color: Theme.focusBorder
+        border.width: player.visualFocus ? Theme.widget.borderWidth : 0
+    }
 
     readonly property MprisPlayer activePlayer: Media.selectedPlayer
 
@@ -17,11 +26,7 @@ Rectangle {
         sourcePlayer: player.activePlayer
     }
 
-    TapHandler {
-        onTapped: popup.visible = !popup.visible
-    }
-
-    PopupWindow {
+    DesktopPopup {
         id: popup
         color: "transparent"
 
@@ -29,8 +34,8 @@ Rectangle {
         anchor.edges: Edges.Bottom
         anchor.gravity: Edges.Bottom
 
-        implicitWidth: 320 //Hyprland.focusedMonitor.width * 1 / 2
-        implicitHeight: 200 //Hyprland.focusedMonitor.height * 1 / 3
+        preferredWidth: 380
+        preferredHeight: 260
 
         grabFocus: true
 
@@ -66,7 +71,7 @@ Rectangle {
         Text {
             id: trackLabel
             anchors.verticalCenter: parent.verticalCenter
-            visible: player.activePlayer !== null
+            visible: player.activePlayer !== null && player.maximumWidth >= 120
             text: {
                 const title = metadata.track.title || "Unknown title";
                 const artist = metadata.track.artist;

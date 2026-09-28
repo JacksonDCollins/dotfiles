@@ -72,22 +72,22 @@ FIND_BIND=$(get_fzf_find_binding)
 
 switch_idx_cmd_maker() {
         echo '
-	CURRENT_SESSION_NAME={}; \
-	CURRENT_IDX="$(tmux list-sessions -F "#{SESSIONIZER_IDX}" -f "#{?#{==:#{session_name},$CURRENT_SESSION_NAME},1,0}")"; \
-			CURRENT_SESSION_ID="$(tmux list-sessions -F "#{session_id}" -f "#{?#{==:#{SESSIONIZER_IDX},$CURRENT_IDX},1,0}")"; \
-			NEXT_IDX=$(($CURRENT_IDX + '"$1"')); \
-			if [ "$NEXT_IDX" -gt 9 ]; then \
-				NEXT_IDX=9; \
-			elif [ "$NEXT_IDX" -lt 1 ]; then \
-				NEXT_IDX=1; \
-			fi; \
-			NEXT_SESSION_ID="$(tmux list-sessions -F "#{session_id}" -f "#{?#{==:#{SESSIONIZER_IDX},$NEXT_IDX},1,0}")"; \
-			tmux setenv -t "$NEXT_SESSION_ID" SESSIONIZER_IDX $CURRENT_IDX; \
-			tmux setenv -t "$CURRENT_SESSION_ID" SESSIONIZER_IDX $NEXT_IDX;
+        CURRENT_SESSION_NAME={};
+        CURRENT_SESSION_ID=$(tmux display-message -p -t "=$CURRENT_SESSION_NAME:" "#{session_id}") || exit 1;
+        [ -n "$CURRENT_SESSION_ID" ] || exit 1;
+        CURRENT_IDX=$(tmux display-message -p -t "$CURRENT_SESSION_ID:" "#{SESSIONIZER_IDX}") || exit 1;
+        case "$CURRENT_IDX" in [1-9]) ;; *) exit 1 ;; esac;
+        NEXT_IDX=$((CURRENT_IDX + '"$1"'));
+        [ "$NEXT_IDX" -ge 1 ] && [ "$NEXT_IDX" -le 9 ] || exit 0;
+        NEXT_SESSION_ID=$(tmux list-sessions -F "#{session_id}" -f "#{==:#{SESSIONIZER_IDX},$NEXT_IDX}") || exit 1;
+        if [ -n "$NEXT_SESSION_ID" ]; then
+                tmux setenv -t "$NEXT_SESSION_ID" SESSIONIZER_IDX "$CURRENT_IDX" || exit 1;
+        fi;
+        tmux setenv -t "$CURRENT_SESSION_ID" SESSIONIZER_IDX "$NEXT_IDX";
 			'
 }
 get_sessions_by_mru_with_idx_cmd="tmux list-sessions -F '#{SESSIONIZER_IDX} #{session_name}' -f '#{?#{>:#{SESSIONIZER_IDX},0},#{?#{<=:#{SESSIONIZER_IDX},9},1,0},0}' \
-	| sort --numeric-sort | awk '{print \$2}' | head -n 9"
+	| sort --numeric-sort | cut -d ' ' -f2- | head -n 9"
 get_sessions_by_mru_with_idx() {
         eval "$get_sessions_by_mru_with_idx_cmd"
 }
@@ -98,7 +98,7 @@ get_current_session_id() {
                 echo ""
         fi
 }
-get_sessions_by_mru_cmd="tmux list-sessions -f '#{!=:#{session_id},$(get_current_session_id)}' -F '#{session_last_attached} #{session_name}' | sort --numeric-sort --reverse | awk '{print \$2}; END {print \"———\"}'"
+get_sessions_by_mru_cmd="tmux list-sessions -f '#{!=:#{session_id},$(get_current_session_id)}' -F '#{session_last_attached} #{session_name}' | sort --numeric-sort --reverse | cut -d ' ' -f2-; printf '%s\\n' '———'"
 
 get_zoxide_results_cmd="zoxide query -l | sed -e \"$HOME_REPLACER\""
 
@@ -180,9 +180,9 @@ history_manager() {
 
 MARKED_SESSION_HEADER=" ^j move down   ^k move up   ^r remove   ^o preview   esc exit"
 MARKED_BORDER_LABEL=" Marked Sessions (1-9) "
-MOVE_DOWN_BIND="ctrl-j:unbind(ctrl-j)+execute-silent($(switch_idx_cmd_maker -1))+reload-sync($get_sessions_by_mru_with_idx_cmd)+down+rebind(ctrl-j)"
-MOVE_UP_BIND="ctrl-k:unbind(ctrl-k)+execute-silent($(switch_idx_cmd_maker 1))+reload-sync($get_sessions_by_mru_with_idx_cmd)+up+rebind(ctrl-k)"
-REMOVE_BIND="ctrl-r:execute-silent(tmux setenv -t ""{}"" SESSIONIZER_IDX '')+reload-sync($get_sessions_by_mru_with_idx_cmd)"
+MOVE_DOWN_BIND="ctrl-j:unbind(ctrl-j)+execute-silent($(switch_idx_cmd_maker 1))+reload-sync($get_sessions_by_mru_with_idx_cmd)+down+rebind(ctrl-j)"
+MOVE_UP_BIND="ctrl-k:unbind(ctrl-k)+execute-silent($(switch_idx_cmd_maker -1))+reload-sync($get_sessions_by_mru_with_idx_cmd)+up+rebind(ctrl-k)"
+REMOVE_BIND="ctrl-r:execute-silent(tmux setenv -t ={} SESSIONIZER_IDX '')+reload-sync($get_sessions_by_mru_with_idx_cmd)"
 
 RNG_SEED=$RANDOM
 TMP_PANE_FILE="/tmp/pane-{}-$RNG_SEED"
@@ -203,7 +203,9 @@ FOCUS_CHANGED_BIND="focus:transform-preview-label($LABEL_CMD)+change-preview($PR
 kill_session_bind() {
         local reload_cmd
         reload_cmd="$1"
-        echo "ctrl-d:execute-silent(tmux kill-session -t {})+reload-sync($reload_cmd)+down"
+        # fzf shell-quotes {}; resolve an exact ID before asking for confirmation.
+        # execute (not execute-silent) temporarily gives the prompt the terminal.
+        echo "ctrl-d:execute(id=\$(tmux display-message -p -t ={}: '#{session_id}') && [ -n \"\$id\" ] && printf 'Kill session %s? [y/N] ' {} >/dev/tty && read -r answer </dev/tty && [ \"\$answer\" = y ] && tmux kill-session -t \"\$id\")+reload-sync($reload_cmd)+down"
 }
 get_result_marked_sessions() {
         case $T_RUNTYPE in
@@ -321,20 +323,15 @@ TAB_BIND="tab:down,btab:up"
 
 if [ $# -ge 1 ]; then                  # argument provided
         if [[ "$1" = +([0-9]) ]]; then # numeric argument
-                if [ "$1" -lt 1 ]; then
-                        display_message "Numeric argument must be 1 or greater"
+                if [[ ! $1 =~ ^[1-9]$ ]]; then
+                        display_message "Numeric argument must be 1 through 9"
                         exit 1
                 fi
-                if [ "$1" -gt 9 ]; then
-                        display_message "Numeric argument must be 9 or less"
+                RESULT=$(tmux list-sessions -F '#{session_name}' -f '#{==:#{SESSIONIZER_IDX},'"$1"'}') || exit 1
+                if [[ -z $RESULT ]]; then
+                        display_message "No session is marked $1"
                         exit 1
                 fi
-                SESSION_COUNT=$(get_sessions_by_mru_with_idx | wc -l)
-                if [ "$1" -gt "$SESSION_COUNT" ]; then
-                        display_message "There are only $SESSION_COUNT sessions"
-                        exit 1
-                fi
-                RESULT=$(get_sessions_by_mru_with_idx | sed -n "${1}p")
         elif [ "$1" = "mark" ]; then
                 if [ -z "$2" ]; then
                         display_message "Expected argument after mark: list, add or remove"
@@ -394,14 +391,18 @@ if [ $# -ge 1 ]; then                  # argument provided
                 fi
 
                 REPO_URL=$2
-                cd $T_REPOS_DIR
+                cd -- "$T_REPOS_DIR" || exit 1
 
-                if git clone --recursive $REPO_URL; then
-                        RESULT="$T_REPOS_DIR/$(basename "$_" .git)"
+                if git clone --recursive -- "$REPO_URL"; then
+                        RESULT="$PWD/$(basename -- "$REPO_URL" .git)"
                 else
                         exit $? # exit code from last command
                 fi
 
+        elif tmux list-sessions -F '#{session_name}' 2>/dev/null | grep -Fxq -- "$1"; then
+                action=attach
+                if [[ $T_RUNTYPE == attached ]]; then action=switch-client; fi
+                exec tmux "$action" -t "=$1"
         else # not -r or --repo
                 zoxide query "$1" &>/dev/null
                 ZOXIDE_RESULT_EXIT_CODE=$?
@@ -461,12 +462,14 @@ else
 fi
 
 if [ "$T_RUNTYPE" != "serverless" ]; then
-        SESSION=$(tmux list-sessions -F '#S' | grep "^$SESSION_NAME$") # find existing session
+        if tmux has-session -t "=$SESSION_NAME" 2>/dev/null; then
+                SESSION=$SESSION_NAME
+        fi
 fi
 
 if [ "$SESSION" = "" ]; then # session is missing
         SESSION="$SESSION_NAME"
-        if [ -e $RESULT/.t ]; then
+        if [ -e "$RESULT/.t" ]; then
                 tmux new-session -d -s "$SESSION" -c "$RESULT" $RESULT/.t # create session and run .t startup script
         else
                 tmux new-session -d -s "$SESSION" -c "$RESULT" # create session
@@ -475,9 +478,9 @@ fi
 
 case $T_RUNTYPE in # attach to session
 attached)
-        tmux switch-client -t "$SESSION"
+        tmux switch-client -t "=$SESSION"
         ;;
 detached | serverless)
-        tmux attach -t "$SESSION"
+        tmux attach -t "=$SESSION"
         ;;
 esac

@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# Read-only menu labels; all unit management remains in packaged uuctl.
+set -euo pipefail
+
+if [[ ${1-} != --menu ]]; then
+    case ${1-} in
+        '') exec /usr/bin/uuctl "$0" --menu -p ;;
+        -a|--all) exec /usr/bin/uuctl --all "$0" --menu -p ;;
+        *) printf 'Usage: %s [--all]\n' "$0" >&2; exit 1 ;;
+    esac
+fi
+shift
+
+original=()
+while IFS= read -r row || [[ -n $row ]]; do
+    [[ -z $row ]] || original+=("$row")
+done
+((${#original[@]})) || exit 1
+display=("${original[@]}")
+menu_args=("$@")
+declare -A labels=()
+need_tmux=false
+for row in "${original[@]}" "${menu_args[@]}"; do
+    if [[ $row == *'tmux child pane '* ]]; then need_tmux=true; break; fi
+done
+
+if $need_tmux && command -v tmux >/dev/null; then
+    # ponytail: custom -S sockets outside this directory require an inherited TMUX.
+    sockets=("${TMUX_TMPDIR:-/tmp}/tmux-$UID/"*)
+    if [[ -n ${TMUX-} ]]; then
+        socket=${TMUX%,*}
+        sockets+=("${socket%,*}")
+    fi
+    format='#{pid} #{pane_pid} #{s/[[:cntrl:]]/ /:session_name} / #{window_index}:#{s/[[:cntrl:]]/ /:window_name} / pane #{pane_index} (#{pane_id})'
+    for socket in "${sockets[@]}"; do
+        [[ -S $socket && -O $socket ]] || continue
+        while IFS= read -r row; do
+            if [[ $row =~ ^([0-9]+)\ ([0-9]+)\ (.+)$ ]]; then
+                key=${BASH_REMATCH[1]}:${BASH_REMATCH[2]}
+                # Linked windows may list one process more than once; use its first context.
+                [[ -n ${labels[$key]-} ]] || labels[$key]=${BASH_REMATCH[3]:0:240}
+            fi
+        done < <(timeout 2s tmux -S "$socket" list-panes -a -F "$format" 2>/dev/null || true)
+    done
+fi
+
+friendly_name() {
+    local pane=$1 server=$2 key=$2:$1
+    if [[ -n ${labels[$key]-} && ${3:-active} == active ]]; then
+        REPLY="tmux: ${labels[$key]}"
+    elif [[ ! -d /proc/$pane ]]; then
+        REPLY="tmux: exited pane $pane (server $server)"
+    else
+        REPLY="tmux: pane $pane (name unavailable; server $server)"
+    fi
+}
+
+scope_row='^tmux child pane ([0-9]+) launched by process ([0-9]+) \(([^()]*)\) tmux-spawn-[0-9a-f-]+\.scope$'
+for i in "${!original[@]}"; do
+    if [[ ${original[i]} =~ $scope_row ]]; then
+        pane=${BASH_REMATCH[1]} server=${BASH_REMATCH[2]} state=${BASH_REMATCH[3]}
+        friendly_name "$pane" "$server" "$state"
+        display[i]="$REPLY ($state)"
+    fi
+done
+# Follow-up action/signal/confirmation prompts contain the description, not the unit ID.
+for i in "${!menu_args[@]}"; do
+    if [[ ${menu_args[i]} =~ tmux\ child\ pane\ ([0-9]+)\ launched\ by\ process\ ([0-9]+) ]]; then
+        description=${BASH_REMATCH[0]} pane=${BASH_REMATCH[1]} server=${BASH_REMATCH[2]}
+        friendly_name "$pane" "$server"
+        prefix=${menu_args[i]%%"$description"*}
+        suffix=${menu_args[i]#*"$description"}
+        menu_args[i]="$prefix$REPLY$suffix"
+    fi
+done
+
+# Index selection keeps display text (including duplicate names) out of unit parsing.
+selection=$(printf '%s\n' "${display[@]}" | fuzzel --dmenu --index -R --log-no-syslog --log-level=warning "${menu_args[@]}") || exit 1
+[[ $selection =~ ^[0-9]+$ && ${#selection} -le 9 ]] || exit 1
+index=$((10#$selection))
+((index < ${#original[@]})) || exit 1
+printf '%s\n' "${original[index]}"

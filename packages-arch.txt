@@ -1,12 +1,17 @@
 foot
+fuzzel
 neovim
 tmux
 quickshell
+bluez-utils
+util-linux
 fzf
+zsh
 zoxide
 starship
 fastfetch
 ttf-jetbrains-mono-nerd
+noto-fonts-emoji
 ttf-material-symbols-variable
 wl-clipboard
 ripgrep

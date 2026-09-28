@@ -5,6 +5,9 @@ import QtQuick
 import Quickshell
 
 ShellRoot {
+    Notifications { id: notifications }
+    Power { id: power }
     Wallpaper {}
-    Bar {}
+    Bar { notificationService: notifications; powerService: power }
+    NotificationToasts { service: notifications }
 }

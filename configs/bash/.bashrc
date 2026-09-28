@@ -18,7 +18,11 @@ if [[ -d $HOME/tmux-bins/tsm/bin && ":$PATH:" != *":$HOME/tmux-bins/tsm/bin:"* ]
 fi
 alias vimdiff='nvim -d'
 if command -v fastfetch >/dev/null 2>&1; then
-    fastfetch
+    # Preserve existing pane output, including scrollback replayed by Resurrect.
+    if [[ -z ${TMUX:-} || -z ${TMUX_PANE:-} ]] ||
+        ! tmux capture-pane -p -S - -t "$TMUX_PANE" 2>/dev/null | grep '[^[:space:]]' >/dev/null; then
+        fastfetch
+    fi
 fi
 # mise owns language runtimes, including Rust; do not override it with ~/.cargo/env.
 if command -v mise >/dev/null 2>&1; then

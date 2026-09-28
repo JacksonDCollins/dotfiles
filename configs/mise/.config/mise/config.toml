@@ -17,6 +17,9 @@ pi = "0.87.1"
 "npm:context-mode" = "1.0.169"
 "npm:chrome-devtools-mcp" = "1.9.0"
 
+# Predictive Zsh suggestions; shell integration is loaded through Zinit.
+"github:Giammarco-Ferranti/deja" = "0.4.2"
+
 # Language servers
 "github:clangd/clangd" = { version = "23.1.0", asset_pattern = "clangd-linux-*.zip", strip_components = 1, bin_path = "bin" }
 "go:golang.org/x/tools/gopls" = "0.23.0"
