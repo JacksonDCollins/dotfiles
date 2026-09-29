@@ -11,4 +11,5 @@ ShellRoot {
     Bar { notificationService: notifications; powerService: power }
     NotificationToasts { service: notifications }
     MediaOsd {}
+    KeybindingsPopup {}
 }

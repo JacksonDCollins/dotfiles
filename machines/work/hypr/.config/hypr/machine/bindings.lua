@@ -1,19 +1,21 @@
+local bind = require("dotfiles.bindings")
+
 hl.unbind("SUPER + ALT + B")
-hl.bind("SUPER + ALT + B", hl.dsp.exec_cmd("uwsm app -- firefox"))
+bind("SUPER + ALT + B", "Open Firefox", hl.dsp.exec_cmd("uwsm app -- firefox"))
 
 hl.unbind("SUPER + SHIFT + E")
-hl.bind("SUPER + SHIFT + E", hl.dsp.exec_cmd("uwsm app -- betterbird"))
+bind("SUPER + SHIFT + E", "Open Betterbird email", hl.dsp.exec_cmd("uwsm app -- betterbird"))
 
 -- Match monitors.lua: each monitor owns workspaces index and index + 4.
 local monitors = require("machine.monitors")
---unbund all monitor focus bindings first to avoid duplicates
-for code = 10, 19 do
-	hl.unbind("SUPER + code:" .. code)
+-- Replace the default number-row workspace bindings.
+for i = 1, 10 do
+	hl.unbind("SUPER + " .. (i % 10))
 end
 for index, output in ipairs(monitors) do
 	local key = "SUPER + " .. output[2]
 	hl.unbind(key)
-	hl.bind(key, function()
+	bind(key, "Focus monitor " .. output[1] .. " / toggle workspaces " .. index .. " and " .. (index + 4), function()
 		local monitor = hl.get_monitor(output[1])
 		if not monitor then
 			return

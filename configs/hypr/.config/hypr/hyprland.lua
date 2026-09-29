@@ -5,6 +5,7 @@ hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 2 })
 hl.config({
 	general = { gaps_in = 5, gaps_out = 10, border_size = 2, layout = "dwindle" },
 	decoration = { rounding = 8 },
+	dwindle = { preserve_split = true },
 })
 
 -- UWSM manages the graphical session and systemd user services.

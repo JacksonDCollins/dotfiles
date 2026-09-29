@@ -55,6 +55,7 @@
     "audio": { "width": "37.037%", "height": "44.444%" },
     "bluetooth": { "width": "35.185%", "height": "40.741%" },
     "calendar": { "width": "29.630%", "height": "23.148%" },
+    "keybindings": { "width": "60%", "height": "65%" },
     "network": { "width": "37.037%", "height": "44.444%" },
     "notifications": { "width": "38.889%", "height": "51.852%" },
     "player": { "width": "35.185%", "height": "24.074%" },

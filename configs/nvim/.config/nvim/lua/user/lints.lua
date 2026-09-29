@@ -9,6 +9,9 @@ lint.linters_by_ft = {
 local luacheck = lint.linters.luacheck
 lint.linters.luacheck = function()
   local config = vim.deepcopy(type(luacheck) == 'function' and luacheck() or luacheck)
+  -- stdin needs its filename for path-scoped .luacheckrc settings to apply.
+  config.args = config.args or {}
+  table.insert(config.args, #config.args, '--filename=' .. vim.api.nvim_buf_get_name(0))
   local current_dir = vim.fn.expand '%:p:h'
   local cwd_dir = vim.fs.dirname(vim.fn.getcwd())
   local luacheckrc = vim.fs.find('.luacheckrc', { path = current_dir, upward = true, stop = cwd_dir })[1]

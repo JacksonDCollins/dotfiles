@@ -1,44 +1,67 @@
--- Native Hyprland bindings: no Omarchy helpers or commands.
-hl.bind("SUPER + Return", hl.dsp.exec_cmd("uwsm app -- foot"))
-hl.bind("SUPER + space", hl.dsp.exec_cmd("uwsm app -- fuzzel"))
-hl.bind("SUPER + B", hl.dsp.exec_cmd('quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call bar toggleKeyboard'))
-hl.bind("SUPER + Q", hl.dsp.window.close())
-hl.bind("SUPER + V", hl.dsp.window.float({ action = "toggle" }))
-hl.bind("SUPER + F", hl.dsp.window.fullscreen())
-hl.bind("SUPER + SHIFT + M", hl.dsp.exec_cmd("uwsm stop"))
-hl.bind("SUPER + L", hl.dsp.exec_cmd('"$HOME/.local/bin/dotfiles-session" lock'))
-hl.bind("SUPER + ALT + L", hl.dsp.layout("togglesplit"))
+-- Descriptions are also displayed by Quickshell's live keybinding reference.
+local function bind(keys, description, dispatcher, options)
+	options = options or {}
+	options.description = description
+	hl.bind(keys, dispatcher, options)
+end
+
+bind("SUPER + Return", "Open Foot terminal", hl.dsp.exec_cmd("uwsm app -- foot"))
+bind("SUPER + space", "Open application launcher", hl.dsp.exec_cmd("uwsm app -- fuzzel"))
+bind("SUPER + B", "Toggle bar keyboard controls", hl.dsp.exec_cmd('quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call bar toggleKeyboard'))
+bind("SUPER + slash", "Show Hyprland keybindings", hl.dsp.exec_cmd('quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call keybindings toggle'))
+bind("SUPER + Q", "Close window", hl.dsp.window.close())
+bind("SUPER + V", "Toggle floating / tiled", hl.dsp.window.float({ action = "toggle" }))
+bind("SUPER + P", "Toggle floating + pinned / tiled + unpinned", function()
+	local window = hl.get_active_window()
+	if not window then return end
+	if window.pinned then
+		hl.dispatch(hl.dsp.window.pin({ window = window, action = "unset" }))
+		hl.dispatch(hl.dsp.window.float({ window = window, action = "unset" }))
+	else
+		hl.dispatch(hl.dsp.window.float({ window = window, action = "set" }))
+		hl.dispatch(hl.dsp.window.pin({ window = window, action = "set" }))
+	end
+end)
+bind("SUPER + F", "Toggle fullscreen", hl.dsp.window.fullscreen())
+bind("SUPER + Tab", "Focus next window (tiled or floating)", hl.dsp.window.cycle_next())
+bind("SUPER + SHIFT + Tab", "Focus previous window (tiled or floating)", hl.dsp.window.cycle_next({ next = false }))
+bind("SUPER + SHIFT + M", "Log out of desktop session", hl.dsp.exec_cmd("uwsm stop"))
+bind("SUPER + L", "Lock screen", hl.dsp.exec_cmd('"$HOME/.local/bin/dotfiles-session" lock'))
+bind("SUPER + ALT + L", "Toggle horizontal / vertical split", hl.dsp.layout("togglesplit"))
 
 -- Query the resulting state once; Quickshell only displays the supplied snapshot.
-local function media_key(key, command, action, query)
-  local state = query and ('"$(LC_ALL=C ' .. query .. ' 2>/dev/null)"') or '\"\"'
-  hl.bind(key, hl.dsp.exec_cmd(command
-    .. '; quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call mediaOsd display '
-    .. action .. ' ' .. state))
+local function media_key(key, description, command, action, query)
+	local state = query and ('"$(LC_ALL=C ' .. query .. ' 2>/dev/null)"') or '""'
+	bind(key, description, hl.dsp.exec_cmd(command
+		.. '; quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call mediaOsd display '
+		.. action .. ' ' .. state))
 end
-media_key("XF86AudioRaiseVolume", "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+", "volume-up", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
-media_key("XF86AudioLowerVolume", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-", "volume-down", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
-media_key("XF86AudioMute", "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle", "mute", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
-media_key("XF86AudioPlay", "playerctl play-pause", "play-pause", "playerctl status")
-media_key("XF86AudioNext", "playerctl next", "next")
-media_key("XF86AudioPrev", "playerctl previous", "previous")
+media_key("XF86AudioRaiseVolume", "Raise volume 5% (maximum 100%)", "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+", "volume-up", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
+media_key("XF86AudioLowerVolume", "Lower volume 5%", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-", "volume-down", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
+media_key("XF86AudioMute", "Toggle mute", "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle", "mute", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
+media_key("XF86AudioPlay", "Play / pause media", "playerctl play-pause", "play-pause", "playerctl status")
+media_key("XF86AudioNext", "Next track", "playerctl next", "next")
+media_key("XF86AudioPrev", "Previous track", "playerctl previous", "previous")
 
-hl.bind("SUPER + H", hl.dsp.focus({ workspace = "m-1" }))
-hl.bind("SUPER + Comma", hl.dsp.focus({ workspace = "m+1" }))
-hl.bind("SUPER + SHIFT + H", hl.dsp.window.move({ workspace = "m-1" }))
-hl.bind("SUPER + SHIFT + Comma", hl.dsp.window.move({ workspace = "m+1" }))
-hl.bind("SUPER + Page_Down", hl.dsp.focus({ workspace = "m-1" }))
-hl.bind("SUPER + Page_Up", hl.dsp.focus({ workspace = "m+1" }))
-hl.bind("SUPER + SHIFT + Page_Down", hl.dsp.window.move({ workspace = "m-1" }))
-hl.bind("SUPER + SHIFT + Page_Up", hl.dsp.window.move({ workspace = "m+1" }))
-
+bind("SUPER + H", "Previous workspace on this monitor", hl.dsp.focus({ workspace = "m-1" }))
+bind("SUPER + Comma", "Next workspace on this monitor", hl.dsp.focus({ workspace = "m+1" }))
+bind("SUPER + SHIFT + H", "Move window to previous workspace", hl.dsp.window.move({ workspace = "m-1" }))
+bind("SUPER + SHIFT + Comma", "Move window to next workspace", hl.dsp.window.move({ workspace = "m+1" }))
+bind("SUPER + Page_Down", "Previous workspace on this monitor", hl.dsp.focus({ workspace = "m-1" }))
+bind("SUPER + Page_Up", "Next workspace on this monitor", hl.dsp.focus({ workspace = "m+1" }))
+bind("SUPER + SHIFT + Page_Down", "Move window to previous workspace", hl.dsp.window.move({ workspace = "m-1" }))
+bind("SUPER + SHIFT + Page_Up", "Move window to next workspace", hl.dsp.window.move({ workspace = "m+1" }))
 for _, direction in ipairs({ "left", "right", "up", "down" }) do
-  hl.bind("SUPER + " .. direction, hl.dsp.focus({ direction = direction }))
+	bind("SUPER + " .. direction, "Focus window " .. direction, hl.dsp.focus({ direction = direction }))
+	bind("SUPER + SHIFT + " .. direction, "Move window " .. direction, hl.dsp.window.move({ direction = direction }))
 end
 for i = 1, 10 do
-  local key = "code:" .. (i + 9)
-  hl.bind("SUPER + " .. key, hl.dsp.focus({ workspace = tostring(i) }))
-  hl.bind("SUPER + SHIFT + " .. key, hl.dsp.window.move({ workspace = tostring(i) }))
+	local key = tostring(i % 10)
+	bind("SUPER + " .. key, "Switch to workspace " .. i, hl.dsp.focus({ workspace = tostring(i) }))
+	bind("SUPER + SHIFT + " .. key, "Move window to workspace " .. i, hl.dsp.window.move({ workspace = tostring(i) }))
 end
-hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true })
-hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
+bind("SUPER + mouse:272", "Drag window", hl.dsp.window.drag())
+bind("SUPER + mouse:273", "Resize window", hl.dsp.window.resize())
+
+-- Machine profiles: local bind = require("dotfiles.bindings")
+return bind
