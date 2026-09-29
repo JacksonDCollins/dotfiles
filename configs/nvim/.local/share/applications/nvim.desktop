@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Neovim
+Exec=foot -e nvim %F
+TryExec=foot
+Terminal=false
+Icon=nvim
+Categories=Utility;TextEditor;
+MimeType=text/plain;
