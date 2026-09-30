@@ -192,6 +192,13 @@ ColumnLayout {
                                 else { root.stopScan(); pairing.start(row.modelData); }
                             }
                         }
+                        ActionButton {
+                            text: "Forget"
+                            visible: row.modelData.paired || row.modelData.bonded
+                            enabled: root.powered && !root.powerBusy && !row.busy && !pairing.busy
+                            Accessible.name: "Forget " + (row.modelData.name || row.modelData.address)
+                            onClicked: row.modelData.forget()
+                        }
                     }
                 }
             }

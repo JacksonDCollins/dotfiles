@@ -28,7 +28,10 @@ Row {
             }
             contentItem: Text {
                 id: label
-                text: button.modelData.name
+                text: {
+                    const windows = button.modelData.toplevels.values;
+                    return button.modelData.name + (windows.length ? " · " + windows.map(w => w.title).filter(title => title && title.length).join(" · ") : "");
+                }
                 textFormat: Text.PlainText
                 font: root.theme.font
                 elide: Text.ElideRight
