@@ -9,16 +9,12 @@ Basic.ToolButton {
     readonly property BluetoothAdapter adapter: Bluetooth.defaultAdapter
     readonly property bool connected: adapter !== null && adapter.devices.values.some(device => device.connected)
     implicitWidth: icon.implicitWidth + 2 * root.theme.spacing.medium
-    implicitHeight: textMetrics.height
+    implicitHeight: root.theme.bar.height
     padding: 0
     hoverEnabled: true
     Accessible.name: !adapter ? "Bluetooth: no adapter" : !adapter.enabled ? "Bluetooth off" : connected ? "Bluetooth connected" : "Bluetooth on"
     onClicked: popup.visible = !popup.visible
 
-    FontMetrics {
-        id: textMetrics
-        font: root.theme.font
-    }
     background: Rectangle {
         radius: root.theme.radius.medium
         color: root.down ? root.theme.surfacePressed : root.hovered ? root.theme.surfaceHover : root.theme.background
@@ -32,7 +28,7 @@ Basic.ToolButton {
         verticalAlignment: Text.AlignVCenter
         font: Qt.font({
             family: root.theme.iconFont.family,
-            pixelSize: root.theme.font.pixelSize,
+            pixelSize: root.theme.tray.iconSize,
             variableAxes: root.theme.iconFont.variableAxes
         })
         color: !root.adapter || !root.adapter.enabled ? root.theme.muted : root.connected ? root.theme.accent : root.theme.foreground

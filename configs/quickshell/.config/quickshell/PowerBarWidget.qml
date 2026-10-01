@@ -22,12 +22,11 @@ Basic.ToolButton {
     visible: service.available
     onVisibleChanged: if (!visible) popup.visible = false
     implicitWidth: icon.implicitWidth + 2 * root.theme.spacing.medium
-    implicitHeight: metrics.height
+    implicitHeight: root.theme.bar.height
     padding: 0
     hoverEnabled: true
     Accessible.name: service.hasBattery ? "Battery " + service.percent + " percent, " + service.status : "Screen brightness"
     onClicked: popup.visible = !popup.visible
-    FontMetrics { id: metrics; font: root.theme.font }
     background: Rectangle {
         radius: root.theme.radius.medium
         color: root.down ? root.theme.surfacePressed : root.hovered ? root.theme.surfaceHover : root.theme.background
@@ -43,7 +42,7 @@ Basic.ToolButton {
         color: root.service.warningLevel === 2 ? root.theme.error : root.service.warningLevel === 1 ? root.theme.warning : root.theme.foreground
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font: Qt.font({family: root.theme.iconFont.family, pixelSize: root.theme.font.pixelSize, variableAxes: root.theme.iconFont.variableAxes})
+        font: Qt.font({family: root.theme.iconFont.family, pixelSize: root.theme.tray.iconSize, variableAxes: root.theme.iconFont.variableAxes})
     }
     DesktopPopup { theme: root.theme;
         id: popup

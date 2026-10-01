@@ -8,7 +8,7 @@ Basic.ToolButton {
     required property ScreenTheme theme
     property real maximumWidth: player.theme.bar.playerMaxWidth
     implicitWidth: content.implicitWidth
-    implicitHeight: trackLabel.implicitHeight
+    implicitHeight: content.implicitHeight
     padding: 0
     hoverEnabled: true
     Accessible.name: "Media controls" + (activePlayer ? ": " + (metadata.track.title || activePlayer.identity) : "")
@@ -27,8 +27,9 @@ Basic.ToolButton {
         sourcePlayer: player.activePlayer
     }
 
-    DesktopPopup { theme: player.theme;
+    DesktopPopup {
         id: popup
+        theme: player.theme
         color: "transparent"
 
         anchor.item: player
@@ -47,7 +48,9 @@ Basic.ToolButton {
             border.color: player.theme.border
             border.width: player.theme.widget.borderWidth
 
-            PlayerWidget { theme: player.theme;}
+            PlayerWidget {
+                theme: player.theme
+            }
         }
     }
 
@@ -58,13 +61,15 @@ Basic.ToolButton {
         leftPadding: player.theme.spacing.medium
         rightPadding: player.theme.spacing.medium
 
-        MaterialIcon { theme: player.theme;
+        MaterialIcon {
             id: mediaIcon
+            theme: player.theme
             anchors.verticalCenter: parent.verticalCenter
             text: "play_circle"
             font: Qt.font({
                 family: player.theme.iconFont.family,
-                pixelSize: player.theme.font.pixelSize,
+                // pixelSize: player.theme.font.pixelSize,
+                pixelSize: player.theme.tray.iconSize,
                 variableAxes: player.theme.iconFont.variableAxes
             })
             color: metadata.loading || metadata.showingPreviousTrack ? player.theme.muted : player.theme.foreground

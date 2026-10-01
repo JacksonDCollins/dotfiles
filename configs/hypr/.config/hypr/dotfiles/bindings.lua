@@ -7,13 +7,28 @@ end
 
 bind("SUPER + Return", "Open Foot terminal", hl.dsp.exec_cmd("uwsm app -- foot"))
 bind("SUPER + space", "Open application launcher", hl.dsp.exec_cmd("uwsm app -- fuzzel"))
-bind("SUPER + B", "Toggle bar keyboard controls", hl.dsp.exec_cmd('quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call bar toggleKeyboard'))
-bind("SUPER + slash", "Show Hyprland keybindings", hl.dsp.exec_cmd('quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call keybindings toggle'))
+bind(
+	"SUPER + B",
+	"Toggle bar keyboard controls",
+	hl.dsp.exec_cmd('quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call bar toggleKeyboard')
+)
+bind(
+	"SUPER + slash",
+	"Show Hyprland keybindings",
+	hl.dsp.exec_cmd('quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call keybindings toggle')
+)
 bind("SUPER + Q", "Close window", hl.dsp.window.close())
-bind("SUPER + V", "Toggle floating / tiled", hl.dsp.window.float({ action = "toggle" }))
+bind(
+	"SUPER + SHIFT + V",
+	"Show clipboard history",
+	hl.dsp.exec_cmd('quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call -- clipboard show')
+)
+bind("SUPER + T", "Toggle floating / tiled", hl.dsp.window.float({ action = "toggle" }))
 bind("SUPER + P", "Toggle floating + pinned / tiled + unpinned", function()
 	local window = hl.get_active_window()
-	if not window then return end
+	if not window then
+		return
+	end
 	if window.pinned then
 		hl.dispatch(hl.dsp.window.pin({ window = window, action = "unset" }))
 		hl.dispatch(hl.dsp.window.float({ window = window, action = "unset" }))
@@ -32,13 +47,39 @@ bind("SUPER + ALT + L", "Toggle horizontal / vertical split", hl.dsp.layout("tog
 -- Query the resulting state once; Quickshell only displays the supplied snapshot.
 local function media_key(key, description, command, action, query)
 	local state = query and ('"$(LC_ALL=C ' .. query .. ' 2>/dev/null)"') or '""'
-	bind(key, description, hl.dsp.exec_cmd(command
-		.. '; quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call mediaOsd display '
-		.. action .. ' ' .. state))
+	bind(
+		key,
+		description,
+		hl.dsp.exec_cmd(
+			command
+				.. '; quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call mediaOsd display '
+				.. action
+				.. " "
+				.. state
+		)
+	)
 end
-media_key("XF86AudioRaiseVolume", "Raise volume 5% (maximum 100%)", "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+", "volume-up", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
-media_key("XF86AudioLowerVolume", "Lower volume 5%", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-", "volume-down", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
-media_key("XF86AudioMute", "Toggle mute", "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle", "mute", "wpctl get-volume @DEFAULT_AUDIO_SINK@")
+media_key(
+	"XF86AudioRaiseVolume",
+	"Raise volume 5% (maximum 100%)",
+	"wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+",
+	"volume-up",
+	"wpctl get-volume @DEFAULT_AUDIO_SINK@"
+)
+media_key(
+	"XF86AudioLowerVolume",
+	"Lower volume 5%",
+	"wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-",
+	"volume-down",
+	"wpctl get-volume @DEFAULT_AUDIO_SINK@"
+)
+media_key(
+	"XF86AudioMute",
+	"Toggle mute",
+	"wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+	"mute",
+	"wpctl get-volume @DEFAULT_AUDIO_SINK@"
+)
 media_key("XF86AudioPlay", "Play / pause media", "playerctl play-pause", "play-pause", "playerctl status")
 media_key("XF86AudioNext", "Next track", "playerctl next", "next")
 media_key("XF86AudioPrev", "Previous track", "playerctl previous", "previous")

@@ -7,7 +7,7 @@ Basic.ToolButton {
     required property ScreenTheme theme
     property bool compact: false
     implicitWidth: label.implicitWidth
-    implicitHeight: label.implicitHeight
+    implicitHeight: clock.theme.bar.height
     padding: 0
     hoverEnabled: true
     Accessible.name: "Calendar, " + Time.time("dddd h:mm")

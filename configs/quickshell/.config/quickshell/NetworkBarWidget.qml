@@ -11,13 +11,12 @@ Basic.ToolButton {
     readonly property bool connected: devices.some(d => d.connected)
     readonly property bool limited: connected && (Networking.connectivity === NetworkConnectivity.Limited || Networking.connectivity === NetworkConnectivity.Portal)
     implicitWidth: icon.implicitWidth + 2 * root.theme.spacing.medium
-    implicitHeight: metrics.height
+    implicitHeight: root.theme.bar.height
     padding: 0
     hoverEnabled: true
     Accessible.name: limited ? "Network: limited connectivity" : connected ? "Network connected" : "Network disconnected"
     onClicked: popup.visible = !popup.visible
 
-    FontMetrics { id: metrics; font: root.theme.font }
     background: Rectangle {
         radius: root.theme.radius.medium
         color: root.down ? root.theme.surfacePressed : root.hovered ? root.theme.surfaceHover : root.theme.background
@@ -31,7 +30,7 @@ Basic.ToolButton {
             : root.connected ? "wifi" : Networking.wifiEnabled ? "wifi_find" : "wifi_off"
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font: Qt.font({family: root.theme.iconFont.family, pixelSize: root.theme.font.pixelSize, variableAxes: root.theme.iconFont.variableAxes})
+        font: Qt.font({family: root.theme.iconFont.family, pixelSize: root.theme.tray.iconSize, variableAxes: root.theme.iconFont.variableAxes})
         color: root.limited ? root.theme.warning : root.connected ? root.theme.accent : root.theme.muted
     }
     DesktopPopup { theme: root.theme;

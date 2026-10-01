@@ -6,15 +6,14 @@ import QtQuick.Controls.Basic as Basic
 Row {
     id: root
     required property ScreenTheme theme
-    property real maximumButtonWidth: root.theme.bar.workspaceMaxWidth
+    property var models: Hyprland.workspaces.values.filter(w => w.monitor === Hyprland.monitorFor(root.theme.screen))
     Repeater {
-        // model: Hyprland.workspaces
-        model: Hyprland.workspaces.values.filter(w => w.monitor === Hyprland.monitorFor(root.theme.screen))
+        model: root.models
         delegate: Basic.ToolButton {
             id: button
             required property var modelData
-            implicitWidth: Math.min(label.implicitWidth + 2 * root.theme.spacing.medium, root.maximumButtonWidth)
-            implicitHeight: label.implicitHeight
+            width: Math.max(0, (root.width - root.leftPadding - root.rightPadding - root.spacing * Math.max(0, root.models.length - 1)) / Math.max(1, root.models.length))
+            implicitHeight: root.theme.bar.height
             horizontalPadding: root.theme.spacing.medium
             verticalPadding: 0
             hoverEnabled: true

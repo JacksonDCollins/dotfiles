@@ -11,8 +11,8 @@ Basic.ToolButton {
     Component.onDestruction: {
         if (service && service.centerPopup === popup) service.centerPopup = null;
     }
-    implicitWidth: root.theme.font.pixelSize + 2 * root.theme.spacing.medium
-    implicitHeight: metrics.height
+    implicitWidth: root.theme.tray.iconSize + 2 * root.theme.spacing.medium
+    implicitHeight: root.theme.bar.height
     padding: 0
     hoverEnabled: true
     Accessible.name: "Notification center, " + service.unread + " unread" + (service.dnd ? ", do not disturb" : "")
@@ -20,7 +20,6 @@ Basic.ToolButton {
         if (popup.visible) popup.visible = false;
         else service.showCenter(popup);
     }
-    FontMetrics { id: metrics; font: root.theme.font }
     component ThemedCheckBox: Basic.CheckBox {
         id: control
         Layout.fillWidth: true
@@ -69,7 +68,7 @@ Basic.ToolButton {
     contentItem: MaterialIcon { theme: root.theme;
         text: root.service.dnd ? "notifications_off" : "notifications"
         color: root.service.dnd ? root.theme.warning : root.theme.foreground
-        font: Qt.font({family: root.theme.iconFont.family, pixelSize: root.theme.font.pixelSize, variableAxes: root.theme.iconFont.variableAxes})
+        font: Qt.font({family: root.theme.iconFont.family, pixelSize: root.theme.tray.iconSize, variableAxes: root.theme.iconFont.variableAxes})
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         Rectangle {
@@ -77,9 +76,9 @@ Basic.ToolButton {
             height: 5
             radius: width / 2
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.horizontalCenterOffset: root.theme.font.pixelSize / 2 - 1
+            anchors.horizontalCenterOffset: root.theme.tray.iconSize / 2 - 1
             anchors.verticalCenter: parent.verticalCenter
-            anchors.verticalCenterOffset: -root.theme.font.pixelSize / 2 + 2
+            anchors.verticalCenterOffset: -root.theme.tray.iconSize / 2 + 2
             visible: root.service.unread > 0
             color: root.theme.accent
             border.color: root.theme.background

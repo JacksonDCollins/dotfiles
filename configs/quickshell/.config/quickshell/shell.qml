@@ -5,11 +5,21 @@ import QtQuick
 import Quickshell
 
 ShellRoot {
-    Notifications { id: notifications }
-    Power { id: power }
+    Notifications {
+        id: notifications
+    }
+    Power {
+        id: power
+    }
     Wallpaper {}
-    Bar { notificationService: notifications; powerService: power }
-    NotificationToasts { service: notifications }
+    Bar {
+        notificationService: notifications
+        powerService: power
+    }
+    NotificationToasts {
+        service: notifications
+    }
     MediaOsd {}
     KeybindingsPopup {}
+    Clipboard {}
 }
