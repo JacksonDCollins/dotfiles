@@ -18,11 +18,56 @@ bind(
 	hl.dsp.exec_cmd('quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call keybindings toggle')
 )
 bind("SUPER + Q", "Close window", hl.dsp.window.close())
+
 bind(
 	"SUPER + SHIFT + V",
 	"Show clipboard history",
 	hl.dsp.exec_cmd('quickshell --path "$HOME/.config/quickshell/shell.qml" ipc call -- clipboard show')
 )
+
+hl.window_rule({
+	match = {
+		class = "(Alacritty|kitty|com.mitchellh.ghostty|foot|org\\.codeberg\\.dnkl\\.foot|wezterm|org\\.omarchy\\..*|TUI\\..*)",
+	},
+	tag = "+terminal",
+})
+local function send_shortcut_once(mods, key)
+	return function()
+		hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "down" }))
+
+		hl.timer(function()
+			hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "up" }))
+		end, { timeout = 50, type = "oneshot" })
+	end
+end
+local function active_window_is_terminal()
+	local window = hl.get_active_window()
+	if not window then
+		return false
+	end
+
+	for _, tag in ipairs(window.tags or {}) do
+		if tag:gsub("%*$", "") == "terminal" then
+			return true
+		end
+	end
+
+	return false
+end
+local function universal_clipboard_shortcut(default_mods, default_key, terminal_mods, terminal_key)
+	return function()
+		if active_window_is_terminal() then
+			send_shortcut_once(terminal_mods, terminal_key)()
+		else
+			send_shortcut_once(default_mods, default_key)()
+		end
+	end
+end
+bind("SUPER + A", "Select all", send_shortcut_once("CTRL", "A"))
+bind("SUPER + C", "Universal copy", universal_clipboard_shortcut("CTRL", "C", "CTRL SHIFT", "C"))
+bind("SUPER + V", "Universal paste", universal_clipboard_shortcut("CTRL", "V", "CTRL SHIFT", "V"))
+bind("SUPER + X", "Universal cut", send_shortcut_once("CTRL", "X"))
+
 bind("SUPER + T", "Toggle floating / tiled", hl.dsp.window.float({ action = "toggle" }))
 bind("SUPER + P", "Toggle floating + pinned / tiled + unpinned", function()
 	local window = hl.get_active_window()

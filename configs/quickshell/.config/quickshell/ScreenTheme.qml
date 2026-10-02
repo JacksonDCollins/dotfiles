@@ -24,7 +24,12 @@ QtObject {
     readonly property font iconFont: Qt.font({
         family: config.font.iconFamily,
         pixelSize: Values.calculateValue("font.iconPixelSize", config.font.iconPixelSize, screen, true),
-        variableAxes: { FILL: 1, wght: 400, GRAD: 0, opsz: 24 }
+        variableAxes: {
+            FILL: 1,
+            wght: 400,
+            GRAD: 0,
+            opsz: 24
+        }
     })
 
     readonly property var spacing: Values.resolveDimensions("spacing", config.spacing, screen)
@@ -33,14 +38,14 @@ QtObject {
     readonly property var popups: Values.resolveDimensions("popups", config.popups, screen)
     readonly property var tray: Values.resolveDimensions("tray", config.tray, screen)
     readonly property var bar: ({
-        background: config.bar.background,
-        height: Values.calculateValue("bar.height", config.bar.height, screen, true),
-        padding: Values.calculateValue("bar.padding", config.bar.padding, screen, false),
-        spacing: Values.calculateValue("bar.spacing", config.bar.spacing, screen, false),
-        workspaceMaxWidth: Values.calculateValue("bar.workspaceMaxWidth", config.bar.workspaceMaxWidth, screen, true),
-        playerMaxWidth: Values.calculateValue("bar.playerMaxWidth", config.bar.playerMaxWidth, screen, true),
-        compactWidth: Values.calculateValue("bar.compactWidth", config.bar.compactWidth, screen, true)
-    })
+            background: config.bar.background,
+            height: Values.calculateValue("bar.height", config.bar.height, screen, true),
+            padding: Values.calculateValue("bar.padding", config.bar.padding, screen, false),
+            spacing: Values.calculateValue("bar.spacing", config.bar.spacing, screen, false),
+            workspaceMaxWidth: Values.calculateValue("bar.workspaceMaxWidth", config.bar.workspaceMaxWidth, screen, true),
+            playerMaxWidth: Values.calculateValue("bar.playerMaxWidth", config.bar.playerMaxWidth, screen, true),
+            compactWidth: Values.calculateValue("bar.compactWidth", config.bar.compactWidth, screen, true)
+        })
 
     readonly property color background: config.background
     readonly property color foreground: config.foreground

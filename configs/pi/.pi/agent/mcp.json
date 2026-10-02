@@ -5,6 +5,12 @@
     },
     "chrome-devtools": {
       "command": "chrome-devtools-mcp"
+    },
+    "composio": {
+      "url": "https://backend.composio.dev/tool_router/trs_OfPgSkAmZ9TY/mcp",
+      "headers": {
+        "x-api-key": "!cat /home/jackson/.pi/agent/composio-api-key"
+      }
     }
   }
 }

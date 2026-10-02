@@ -139,6 +139,29 @@ PanelWindow {
             }
             ListView {
                 id: list
+                property bool keyboardNavigating: false
+                function selectPointerRow(): void {
+                    if (keyboardNavigating || !pointerHover.containsMouse) return;
+                    const index = indexAt(pointerHover.mouseX + contentX, pointerHover.mouseY + contentY);
+                    if (index >= 0) currentIndex = index;
+                }
+                onContentYChanged: Qt.callLater(selectPointerRow)
+                MouseArea {
+                    id: pointerHover
+                    parent: list
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton
+                    hoverEnabled: true
+                    onPositionChanged: {
+                        list.keyboardNavigating = false;
+                        list.selectPointerRow();
+                    }
+                    onWheel: wheel => {
+                        list.keyboardNavigating = false;
+                        wheel.accepted = false;
+                        Qt.callLater(list.selectPointerRow);
+                    }
+                }
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
@@ -152,6 +175,7 @@ PanelWindow {
 
                 function selectStep(step: int): void {
                     if (!count) return;
+                    keyboardNavigating = true;
                     cancelFlick();
                     currentIndex = Math.max(0, Math.min(count - 1, currentIndex + step));
                     positionViewAtIndex(currentIndex, ListView.Contain);
@@ -159,6 +183,7 @@ PanelWindow {
 
                 function page(down: bool): void {
                     if (!count) return;
+                    keyboardNavigating = true;
                     cancelFlick();
                     const bottom = originY + Math.max(0, contentHeight - height);
                     contentY = Math.max(originY, Math.min(bottom, contentY + (down ? height : -height)));
@@ -183,6 +208,8 @@ PanelWindow {
                     });
                 }
                 Basic.ScrollBar.vertical: Basic.ScrollBar {
+                    onPressedChanged: if (pressed) list.keyboardNavigating = false
+                    active: search.activeFocus || list.moving || hovered || pressed
                     palette.mid: root.theme ? root.theme.muted : "gray"
                 }
                 delegate: Rectangle {

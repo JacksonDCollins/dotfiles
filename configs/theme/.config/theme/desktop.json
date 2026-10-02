@@ -62,7 +62,8 @@
     "power": { "width": "33.333%", "height": 0 },
     "session": { "width": "29.630%", "height": 0 },
     "toasts": { "width": "37.037%", "height": "55.556%" },
-    "tray": { "width": "29.630%", "height": 0 }
+    "tray": { "width": "29.630%", "height": 0 },
+    "clipboard": { "width": "29.630%", "height": "35%" }
   },
   "widget": {
     "padding": "0.926%",
