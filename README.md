@@ -263,6 +263,49 @@ The earlier dotfiles-only placement recorder has been removed. Its saved files
 and old `window-session.lua`/JSON options are left untouched, but are no longer
 read. There is no dotfiles window-session service or external interpreter helper.
 
+### Fullscreen workspaces
+
+`dotfiles/windowrules.lua` moves a window entering actual fullscreen (not just
+maximized) to one above the highest occupied numbered workspace across all
+monitors, keeps it on its monitor, and follows it. Leaving fullscreen returns to
+its original workspace, recreating it if needed. An existing original workspace
+keeps its current monitor; if its saved monitor was unplugged, Hyprland chooses
+the available destination. If it is the only mapped window on its workspace,
+it stays there without a return tag; already-isolated windows still return home.
+Pinned, grouped, hidden and special-workspace windows are excluded.
+
+With the native plugin loaded, tiled windows share one saved dwindle tree per
+original workspace. Returning restores its split order, axes and ratios, pruning
+windows still away, so multiple fullscreen windows can return in either order.
+Before each move the rule compares the remaining tree with its last observed
+state. Changes there (including opening/closing/moving windows or resizing splits)
+cancel layout restoration for that round trip rather than overwrite your edits.
+A rejected native restore also falls back to normal placement. Floating windows
+and unsupported layouts keep normal workspace-move behavior.
+
+With the updated session controller enabled, split baselines and away-window
+membership are included in its snapshots. After login, saved window slots are
+remapped through session matching; a baseline is restored only when all members
+and the remaining tree can be verified. Config reloads can recover the last
+checkpoint without moving windows. Unsaved changes are not recoverable; use the
+controller's `save()` before an immediate logout. Without the controller, baselines
+remain in memory for the current config load.
+
+The `dotfiles-fullscreen-return:` manual tag stores the original workspace and
+monitor. It survives config reloads and is included in native session snapshots;
+do not remove it while the window is isolated. No separate state file is used.
+Movement is deferred until the fullscreen event completes, and failures retain
+the return tag and log a `Fullscreen workspace:` error. Existing untagged
+fullscreen windows are not moved merely by reloading the config.
+
+Session replay suppresses these moves through `hyprcachy_window_session.restoring`.
+If the enabled controller lacks that signal, the rule waits rather than fighting
+restoration. Fullscreen snapshot persistence requires the updated Hyprcachy
+package and native `remap` helper: rebuild/install, then log out/in. Incompatible
+snapshots are archived automatically; old in-memory split baselines cannot be
+recovered on that first activation. Future fullscreen round trips are saved in
+the current snapshot format. No automatic reload is performed by editing these files.
+
 ## Appearance
 
 Catppuccin Mocha is fixed across Neovim, Foot, tmux, Hyprland borders, and Quickshell
