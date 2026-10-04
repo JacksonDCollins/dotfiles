@@ -22,5 +22,31 @@ local function optional_module(name, path)
 		require(name)
 	end
 end
+-- Hyprcachy's package loads the native plugin at login; dotfiles only configure it.
+if hl.plugin.window_session and hl.plugin.window_session.config then
+	hl.plugin.window_session.config({
+		enabled = true,
+
+		-- Seconds; these are the defaults.
+		launch_delay = 20, -- Wait before launching missing apps/fallback matching.
+		restore_timeout = 80, -- Stop waiting for missing windows.
+		stability_delay = 15, -- Wait for stable topology before saving.
+
+		launch = {
+			-- Explicit command and arguments:
+			foot = { "foot", "tmux", "new-session", "-A", "-s", "main" },
+
+			-- Desktop entry:
+			-- firefox = "firefox.desktop",
+
+			-- Restore placement, but let autostart launch it:
+			vesktop = false,
+		},
+
+		-- Initial window classes to exclude:
+		ignore = {}, -- Example: { "private-app" }
+	})
+end
+
 require("dotfiles")
 optional_module("machine", "machine.lua")

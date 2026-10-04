@@ -246,6 +246,23 @@ to kill. Linked windows show the first listed session context. Custom `-S` socke
 outside that directory need an inherited `TMUX` value. No daemon, tmux hooks or
 live scope renaming is involved.
 
+### Window-session restoration
+
+Hyprcachy owns the experimental native dwindle-tree/session plugin, its controller,
+package, startup entry and upgrade hooks. In Hyprcachy's UWSM session, the package
+loads the native plugin through XDG autostart. Dotfiles only configure
+`hl.plugin.window_session.config({ enabled = true, ... })`; restoration is opt-in.
+Guard the call with `if hl.plugin.window_session and hl.plugin.window_session.config then`
+because the plugin may not be loaded yet, may be absent, or may still be an older
+running binary. Hyprland reloads configuration after the plugin loads. No `dofile`
+loader, separate settings file, or dotfiles startup service is needed.
+See [Hyprcachy's plugin documentation](https://github.com/JacksonDCollins/hyprcachy/tree/main/plugins/window-session)
+for installation, compatibility and activation.
+
+The earlier dotfiles-only placement recorder has been removed. Its saved files
+and old `window-session.lua`/JSON options are left untouched, but are no longer
+read. There is no dotfiles window-session service or external interpreter helper.
+
 ## Appearance
 
 Catppuccin Mocha is fixed across Neovim, Foot, tmux, Hyprland borders, and Quickshell
