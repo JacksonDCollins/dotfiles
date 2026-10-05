@@ -1,0 +1,15 @@
+[Unit]
+Description=Start tmux and restore its last snapshot
+After=graphical-session-pre.target wayland-session-waitenv.service
+Before=graphical-session.target
+ConditionPathExists=%h/.config/tmux/plugins/tmux-resurrect/scripts/restore.sh
+
+[Service]
+Type=forking
+UnsetEnvironment=TMUX TMUX_PANE
+ExecCondition=/usr/bin/bash -c '! /usr/bin/tmux show-options -g >/dev/null 2>&1'
+ExecStart=/usr/bin/tmux new-session -d
+ExecStartPost=/usr/bin/tmux run-shell 'exec "$${HOME}/.config/tmux/plugins/tmux-resurrect/scripts/restore.sh"'
+
+[Install]
+WantedBy=graphical-session.target

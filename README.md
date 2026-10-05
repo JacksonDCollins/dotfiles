@@ -87,6 +87,20 @@ Deleting a pane-history file does not delete commands from Deja's database.
 If desired, explicitly import a chosen history with `deja import --file PATH`;
 setup never scans or imports private histories automatically.
 
+## Tmux startup
+
+`dotfiles-tmux.service` starts a detached default tmux server after UWSM exports
+the graphical environment and runs tmux-resurrect synchronously before
+`graphical-session.target`, so Hyprcachy's Foot startup cannot race restoration. It uses Resurrect's `last`
+snapshot exactly as selected by TSM—not the newest file by timestamp—and retains
+the existing restore hooks. No snapshot leaves a fresh session; an existing tmux
+server is left alone. Continuum still autosaves every 15 minutes, but its separate
+background auto-restore is disabled to avoid running the restore twice.
+
+Reapply dotfiles to install the service and its target link, then log out/in.
+This does not restore arbitrary running processes (`@resurrect-processes` stays
+`false`); it restores the layout, scrollback and metadata supported by your hooks.
+
 ## Tmux pane history
 
 Zsh keeps independent command histories for tmux panes under

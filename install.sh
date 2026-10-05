@@ -432,6 +432,10 @@ for i in "${!STATE_SOURCES[@]}"; do
 done
 TRANSACTION_ACTIVE=0
 
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user daemon-reload || printf '%s\n' 'Warning: installed configs but could not reload user services' >&2
+fi
+
 if command -v tmux >/dev/null 2>&1 && tmux list-sessions >/dev/null 2>&1; then
     tmux source-file "$HOME/.config/tmux/tmux.conf" || printf '%s\n' 'Warning: installed configs but could not reload tmux' >&2
 fi
