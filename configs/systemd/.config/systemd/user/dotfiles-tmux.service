@@ -7,9 +7,9 @@ ConditionPathExists=%h/.config/tmux/plugins/tmux-resurrect/scripts/restore.sh
 [Service]
 Type=forking
 UnsetEnvironment=TMUX TMUX_PANE
-ExecCondition=/usr/bin/bash -c '! /usr/bin/tmux show-options -g >/dev/null 2>&1'
-ExecStart=/usr/bin/tmux new-session -d
-ExecStartPost=/usr/bin/tmux run-shell 'exec "$${HOME}/.config/tmux/plugins/tmux-resurrect/scripts/restore.sh"'
+ExecCondition=/usr/bin/bash -c '! "$${HOME}/.local/bin/tmux" show-options -g >/dev/null 2>&1'
+ExecStart=%h/.local/bin/tmux new-session -d
+ExecStartPost=%h/.local/bin/tmux run-shell 'exec "$${HOME}/.config/tmux/plugins/tmux-resurrect/scripts/restore.sh"'
 
 [Install]
 WantedBy=graphical-session.target

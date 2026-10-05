@@ -1,0 +1,2 @@
+# Apply after UWSM loads the login environment, before graphical apps start.
+export PATH="$HOME/.local/bin:${PATH:-/usr/local/bin:/usr/bin}"

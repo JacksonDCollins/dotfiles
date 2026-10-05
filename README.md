@@ -101,6 +101,24 @@ Reapply dotfiles to install the service and its target link, then log out/in.
 This does not restore arbitrary running processes (`@resurrect-processes` stays
 `false`); it restores the layout, scrollback and metadata supported by your hooks.
 
+## Tmux session bar
+
+With Hyprcachy's `hyprcachy-tmux` companion installed, tmux shows named sessions
+across a full-width top row, highlights the current session, and switches to a
+session when clicked. The existing dotbar/TSM bar stays below the panes. These
+are native status rows, not extra panes, so snapshots need no changes.
+
+`~/.local/bin/tmux` selects the companion when present and otherwise uses stock
+tmux. The UWSM `env.d/60-tmux` configuration puts this launcher first for the
+next graphical login; the restore service uses its absolute path. Outside that
+environment, put `~/.local/bin` before `/usr/bin` or invoke `hyprcachy-tmux`.
+Stock or older running servers retain the ordinary bottom bar. Config reloads
+do not replace a running server: finish/save work before deliberately stopping
+it, then start a new one. A surviving server is still left alone at login.
+
+Hyprcachy owns package builds and guarded automatic updates; dotfiles do not
+patch or install tmux. See `packages/tmux/README.md` in the Hyprcachy repository.
+
 ## Tmux pane history
 
 Zsh keeps independent command histories for tmux panes under

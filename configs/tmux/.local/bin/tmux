@@ -1,0 +1,6 @@
+#!/bin/sh
+# Use the guarded companion when installed; otherwise keep stock tmux working.
+if [ -x /usr/bin/hyprcachy-tmux ]; then
+    exec /usr/bin/hyprcachy-tmux "$@"
+fi
+exec /usr/bin/tmux "$@"
