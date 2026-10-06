@@ -250,7 +250,6 @@ siw(    surround current word with spaced parentheses
 - Gitsigns adds NO custom/global hunk keys here; commentary and unimpaired are not installed.
 
 ## Optional UIs and Sources *jc-ref-sources*
-- Command-only `:Glow`: preview n `q`/`<Esc>` close, normal scrolling; local glow needed. [Help](glow.nvim.txt).
 - `:ConformInfo`: n `q`/`<C-c>` close. Gitsigns focused popup n `q` closes. [Gitsigns help](gitsigns).
 - Gitsigns blame n `<CR>` menu; `r`/`R` reblame commit/parent; `d` diff tab; `s/S/e` show vsplit/tab/current.
 - Editor tools: edit the dotfiles mise config, then run `bash install-runtimes.sh` outside Neovim.

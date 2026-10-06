@@ -21,7 +21,6 @@ vim.pack.add {
   { src = 'https://github.com/kylechui/nvim-surround' },
   { src = 'https://github.com/windwp/nvim-autopairs.git' },
   { src = 'https://github.com/abecodes/tabout.nvim' },
-  { src = 'https://github.com/vimpostor/vim-tpipeline' },
   { src = 'https://github.com/christoomey/vim-tmux-navigator' },
   { src = 'https://github.com/catgoose/nvim-colorizer.lua' },
   { src = 'https://github.com/folke/flash.nvim' },

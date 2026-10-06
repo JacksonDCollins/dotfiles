@@ -2,8 +2,6 @@ vim.o.autoread = true --auto reload files edited outside of nvim
 vim.g.have_nerd_font = true --nerd font installed
 vim.g.editorconfig = true --use editorconfig files in project dirs
 
-vim.g.tpipeline_autoembed = 0 --disable tpipeline auto embed (we use manual commands)
-
 vim.g.tmux_navigator_no_mappings = 1 --disable tmux navigator default mappings (we use our own)
 
 -- Netrw configuration

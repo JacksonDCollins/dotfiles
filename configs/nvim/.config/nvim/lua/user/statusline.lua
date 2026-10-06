@@ -1,60 +1,12 @@
-local function resolve_tmux_command(cmd)
-  local handle = io.popen(cmd)
-  local result = ''
-  if handle ~= nil then
-    result = handle:read('*a'):gsub('\n', '')
-    handle:close()
-  end
-  return result
-end
-
-local function get_tmux_option(option_name)
-  local handle = io.popen('tmux show-option -gqv ' .. option_name)
-  local option_value = ''
-  if handle ~= nil then
-    option_value = handle:read('*a'):gsub('\n', '')
-    handle:close()
-  end
-  if string.sub(option_value, 0, 2) == '#(' then
-    option_value = resolve_tmux_command(string.sub(option_value, 3, -2))
-    vim.notify('Resolved tmux option ' .. option_name .. ' to ' .. option_value)
-  end
-  return option_value
-end
-
-local tmux_status_bar_bg = get_tmux_option '@tmux-dotbar-bg'
-local tmux_status_bar_fg = get_tmux_option '@tmux-dotbar-fg'
-local tmux_status_bar_fg_current = get_tmux_option '@tmux-dotbar-fg-current'
-
 local function apply_statusline_highlights()
-  vim.api.nvim_set_hl(
-    0,
-    'TmuxStatusLineDim',
-    tmux_status_bar_bg ~= '' and tmux_status_bar_fg ~= '' and { bg = tmux_status_bar_bg, fg = tmux_status_bar_fg }
-      or { link = 'StatusLineNC' }
-  )
-  vim.api.nvim_set_hl(
-    0,
-    'TmuxStatusLineCurrent',
-    tmux_status_bar_bg ~= ''
-        and tmux_status_bar_fg_current ~= ''
-        and { bg = tmux_status_bar_bg, fg = tmux_status_bar_fg_current }
-      or { link = 'StatusLine' }
-  )
-  vim.api.nvim_set_hl(
-    0,
-    'CopilotActiveStatusLine',
-    tmux_status_bar_bg ~= ''
-        and { fg = vim.api.nvim_get_hl(0, { name = 'DiagnosticInfo', link = false }).fg, bg = tmux_status_bar_bg }
-      or { link = 'DiagnosticInfo' }
-  )
+  vim.api.nvim_set_hl(0, 'CopilotActiveStatusLine', { link = 'DiagnosticInfo' })
 end
 
 apply_statusline_highlights()
 
 local config = {
-  dim = 'TmuxStatusLineDim',
-  active = 'TmuxStatusLineCurrent',
+  dim = 'StatusLineNC',
+  active = 'StatusLine',
 }
 
 local function hl(group, text)
@@ -139,9 +91,6 @@ end
 
 local function refresh_statusline()
   vim.cmd.redrawstatus()
-  if vim.g.loaded_tpipeline then
-    pcall(vim.fn['tpipeline#update'])
-  end
 end
 
 -- Timer for animating spinner
@@ -246,9 +195,8 @@ function Statusline.active()
   }
 end
 
-function Statusline.inactive()
-  return ' %t'
-end
+vim.o.laststatus = 3
+vim.o.statusline = '%!v:lua.Statusline.active()'
 
 local group = vim.api.nvim_create_augroup('Statusline', { clear = true })
 
@@ -256,20 +204,4 @@ vim.api.nvim_create_autocmd('ColorScheme', {
   group = group,
   desc = 'Reapply statusline highlights',
   callback = apply_statusline_highlights,
-})
-
-vim.api.nvim_create_autocmd({ 'WinEnter', 'BufEnter' }, {
-  group = group,
-  desc = 'Activate statusline on focus',
-  callback = function()
-    vim.opt_local.statusline = '%!v:lua.Statusline.active()'
-  end,
-})
-
-vim.api.nvim_create_autocmd({ 'WinLeave', 'BufLeave' }, {
-  group = group,
-  desc = 'Deactivate statusline when unfocused',
-  callback = function()
-    vim.opt_local.statusline = '%!v:lua.Statusline.inactive()'
-  end,
 })
