@@ -281,14 +281,21 @@ live scope renaming is involved.
 ### Window-session restoration
 
 Hyprcachy owns the experimental native dwindle-tree/session plugin, its controller,
-package, startup entry and upgrade hooks. In Hyprcachy's UWSM session, the package
-loads the native plugin through XDG autostart. Dotfiles only configure
-`hl.plugin.window_session.config({ enabled = true, ... })`; restoration is opt-in.
-Guard the call with `if hl.plugin.window_session and hl.plugin.window_session.config then`
-because the plugin may not be loaded yet, may be absent, or may still be an older
-running binary. Hyprland reloads configuration after the plugin loads. No `dofile`
-loader, separate settings file, or dotfiles startup service is needed.
-See [Hyprcachy's plugin documentation](https://github.com/JacksonDCollins/hyprcachy/tree/main/plugins/window-session)
+package and upgrade integration. Dotfiles use one package-owned function:
+
+```lua
+dofile("/usr/share/hyprcachy/window-session/init.lua")({ enabled = true })
+```
+
+The table in `hyprland.lua` holds your settings. The package handles native loading
+and the first-pass API guard, before compositor readiness and application autostarts.
+Desktop discovery and snapshot processing remain asynchronous; restoration is opt-in.
+Install the updated package before using this config, then reboot. A missing snippet
+is a configuration error, not a silent disable. No dotfiles loader implementation,
+separate settings file or startup service is needed. Keep the call while the session
+is running: removing it on reload unloads the plugin and can disconnect protocol
+clients. Disable restoration with `enabled = false` instead.
+See [Hyprcachy's plugin documentation](https://github.com/JacksonDCollins/hyprcachy/tree/main/packages/window-session)
 for installation, compatibility and activation.
 
 The earlier dotfiles-only placement recorder has been removed. Its saved files
@@ -320,7 +327,8 @@ membership are included in its snapshots. After login, saved window slots are
 remapped through session matching; a baseline is restored only when all members
 and the remaining tree can be verified. Config reloads can recover the last
 checkpoint without moving windows. Unsaved changes are not recoverable; use the
-controller's `save()` before an immediate logout. Without the controller, baselines
+controller's `save()` and wait for its asynchronous task to finish successfully
+before logout. Without the controller, baselines
 remain in memory for the current config load.
 
 The `dotfiles-fullscreen-return:` manual tag stores the original workspace and
