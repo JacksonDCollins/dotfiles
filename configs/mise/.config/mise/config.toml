@@ -1,7 +1,5 @@
 # Runtime, CLI, and editor-tool versions live here, never in Neovim configuration.
 # Project mise.toml files can override these global defaults.
-[vars]
-zig_version = "0.16.0" # Zig and ZLS share one compatible release.
 
 [tools]
 node = "26.11.1"
@@ -26,7 +24,7 @@ pi = "latest"
 "go:golang.org/x/tools/gopls" = "0.23.0"
 "npm:typescript" = "7.0.2"
 "npm:typescript-language-server" = "6.0.1"
-zls = "{{ vars.zig_version }}"
+zls = "0.16.0"
 lua-language-server = "3.19.1"
 
 # Formatters and linters (rustfmt comes from the Rust toolchain).
