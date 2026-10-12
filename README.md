@@ -36,7 +36,7 @@ The shared config uses Delta, which requires `git-delta` on Arch/CachyOS.
 `packages-arch.txt` owns user applications and their configuration dependencies,
 independently of Hyprcachy:
 
-- Applications: Foot, Neovim, tmux, and Quickshell for the wallpaper shell.
+- Applications: Foot, Neovim, nnn, tmux, and Quickshell for the wallpaper shell.
 - Bash: Starship, Fastfetch, and Zoxide (also used by the tmux session picker).
 - Tmux session picker: fzf.
 - Foot/editor appearance: JetBrains Mono Nerd Font.
@@ -47,6 +47,66 @@ Hyprcachy installs the OS/desktop infrastructure plus Git and Stow, clones/updat
 repository as the user, installs packages from this validated data-only list as
 root, then calls this repository's `setup.sh` once as the user. Dotfiles own the
 config/runtime installation sequence; Hyprcachy never executes dotfiles scripts as root. Publish changes here before updating a Hyprcachy installer that requires them.
+
+## nnn file manager
+
+Run `n` for the configured file manager and change-directory-on-exit helper.
+Each invocation uses its own private temporary quit-directory file, cleaned up
+on return, so concurrent terminal panes cannot overwrite each other's destination.
+It uses `~/.local/bin/nnn-dotfiles`, a [custom nnn build](packages/nnn/) with plain
+`o` bound to the application picker. Ctrl+O retains the original command prompt.
+Normal opening still uses pacman's `/usr/share/nnn/plugins/nuke` in terminal mode.
+Automatic filtering is off; `/` enters the filter, where `o` is ordinary text.
+
+`n()` sets colour roles using the terminal palette already supplied by
+`~/.config/theme/foot.ini`: blue contexts/directories, green executables, teal
+symlinks, red errors, and muted file details. Ordinary files keep the terminal
+foreground. No separate nnn theme file or RGB conversion is needed; other
+terminals use their own palette for the same roles.
+
+`setup.sh` builds the companion using `install-nnn.sh` before applying dotfiles.
+For an existing setup, run `bash install-nnn.sh` and apply the updated dotfiles
+with `install.sh` before opening a new shell. Stock `/usr/bin/nnn` is untouched.
+Each build selects the latest stable upstream release and verifies its signature.
+It stops if our patch no longer applies, without silently choosing an older version.
+Rerun `install-nnn.sh` or `setup.sh` to update; pacman alone does not rebuild it.
+
+## Application picker
+
+`dotfiles-open-with FILE` is a standalone command, not an nnn plugin. Stow links
+`configs/fuzzel/.local/bin/dotfiles-open-with` into `~/.local/bin`. It opens Fuzzel
+with registered file-type handlers first, then the remaining visible desktop
+applications, then executable names from `$PATH`. Type to fuzzy-search names
+across the whole list, using Fuzzel's fzf-style matching. Desktop entries retain
+their names and icons; commands are labelled `[PATH]`. Repeated command names
+resolve to the first executable in PATH order. The initial order is not changed
+by launch history. Escape cancels without changing default associations.
+The nnn binding passes only the hovered file, not the selection list.
+
+Desktop entries launch through `gtk-launch`, so terminal applications may open
+a new terminal. Selecting a `[PATH]` command runs it in the current terminal and
+waits for it to finish. The selected file is passed as one argument; applications
+not registered for its type may not support opening it.
+
+“Other program…” remains available for entering a literal executable name or
+path outside the list (e.g. `/path/to/program`). Paths with spaces need no quotes.
+Arguments, shell commands and `~` expansion are not supported. These custom
+programs also run in the foreground. Escape or an empty program cancels.
+
+The Bash command uses existing desktop tools: `xdg-mime` identifies the file type,
+`gio mime` lists registered application IDs (such as `libreoffice-calc.desktop`),
+and `gtk-launch` opens the choice without interpreting `.desktop` commands itself.
+The picker reads localized names and icons from desktop entries, respecting XDG
+search paths and user overrides, and uses the same Fuzzel theme as Super+Space.
+Hidden/NoDisplay entries, non-application entries, and applications with an
+unavailable `TryExec` are omitted. Registered handlers are not repeated in the
+remaining applications. Duplicate labels include their desktop IDs or executable
+paths; selection uses row indices so matching names cannot launch the wrong entry.
+Missing display metadata falls back to the ID and a generic icon. Desktop command
+lines are never interpreted by the script. `gtk3` is explicitly declared for
+`gtk-launch`; no Python bindings or custom launcher binary are needed.
+Missing commands produce an error; nothing is installed
+automatically. Manually downloaded nnn plugins are left alone.
 
 ## Zsh plugins
 

@@ -15,7 +15,8 @@
     "npm:pi-lens",
     "npm:@dietrichgebert/ponytail",
     "npm:pi-token-meter",
-    "npm:@narumitw/pi-usage"
+    "npm:@narumitw/pi-usage",
+    "npm:@yceachan/pi-switch-cwd"
   ],
   "hideThinkingBlock": true,
   "lastChangelogVersion": "1.1.0"

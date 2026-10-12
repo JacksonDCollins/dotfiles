@@ -1,6 +1,9 @@
 foot
 fuzzel
+gtk3
 neovim
+nnn
+less
 tmux
 quickshell
 playerctl

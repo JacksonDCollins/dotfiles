@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+# Prefer registered handlers, then offer desktop applications and PATH commands.
+set -euo pipefail
+
+die() { printf 'dotfiles-open-with: %s\n' "$*" >&2; exit 1; }
+
+# Leave desktop command parsing and launching to gtk-launch.
+desktop_metadata() {
+    awk '
+        function clean(value, result, i, c) {
+            for (i = 1; i <= length(value); ++i) {
+                c = substr(value, i, 1)
+                if (c == "\\" && i < length(value)) {
+                    c = substr(value, ++i, 1)
+                    if (c ~ /^[sntr]$/) c = " "
+                    else if (c != "\\") result = result "\\"
+                }
+                result = result c
+            }
+            gsub(/[[:cntrl:]]/, " ", result)
+            return result
+        }
+        /^[[:space:]]*\[/ {
+            section = ($0 ~ /^[[:space:]]*\[Desktop Entry\][[:space:]]*$/)
+            next
+        }
+        section && /^[[:space:]]*(Name(\[[^]]+\])?|Icon|Hidden|NoDisplay|Type|Exec|TryExec|DBusActivatable)[[:space:]]*=/ {
+            key = $0; sub(/=.*/, "", key); gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+            value = $0; sub(/^[^=]*=[[:space:]]*/, "", value); sub(/[[:space:]]+$/, "", value)
+            fields[key] = value
+        }
+        END {
+            if (fields["Hidden"] == "true" || fields["NoDisplay"] == "true") exit
+            if (fields["Type"] != "Application") exit
+            if (!fields["Exec"] && fields["DBusActivatable"] != "true") exit
+            locale = ENVIRON["LC_ALL"]
+            if (!locale) locale = ENVIRON["LC_MESSAGES"]
+            if (!locale) locale = ENVIRON["LANG"]
+            sub(/\.[^@]*/, "", locale)
+            territory = locale; sub(/@.*/, "", territory)
+            language = territory; sub(/_.*/, "", language)
+            modifier = locale ~ /@/ ? substr(locale, index(locale, "@")) : ""
+            name = fields["Name[" locale "]"]
+            if (!name) name = fields["Name[" territory "]"]
+            if (!name) name = fields["Name[" language modifier "]"]
+            if (!name) name = fields["Name[" language "]"]
+            if (!name) name = fields["Name"]
+            print clean(name)
+            print clean(fields["Icon"])
+            print clean(fields["TryExec"])
+        }
+    ' < "$1"
+}
+
+for tool in xdg-mime gio fuzzel gtk-launch find awk sort; do
+    command -v "$tool" >/dev/null || die "Required desktop command is unavailable: $tool"
+done
+[[ -n ${1:-} ]] || die 'No file selected.'
+file=$1
+[[ $file == /* ]] || file="$PWD/$file"
+[[ -e $file ]] || die "File does not exist: $file"
+mime=$(xdg-mime query filetype "$file")
+[[ -n $mime ]] || die 'Cannot determine the file type.'
+handlers=$(LC_ALL=C.UTF-8 gio mime "$mime")
+apps=()
+registered=false
+# Read only GIO's C-locale registered-app section, not its repeated recommendations.
+while IFS= read -r line; do
+    if [[ $line == 'Registered applications:' ]]; then
+        registered=true
+        continue
+    fi
+    $registered || continue
+    [[ $line == $'\t'* ]] || break
+    app=${line#$'\t'}
+    [[ -z $app ]] || apps+=("$app")
+done <<< "$handlers"
+
+# Resolve desktop IDs with user overrides first, including IDs from subdirectories.
+IFS=: read -r -a data_dirs <<< "${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+data_dirs=("${XDG_DATA_HOME:-$HOME/.local/share}" "${data_dirs[@]}")
+declare -A desktop_files=()
+for root in "${data_dirs[@]}"; do
+    [[ $root == /* && -d $root/applications ]] || continue
+    while IFS= read -r -d '' entry; do
+        id=${entry#"$root/applications/"}
+        id=${id//\//-}
+        [[ $id == *[[:cntrl:]]* ]] && continue
+        [[ -n ${desktop_files[$id]:-} ]] || desktop_files[$id]=$entry
+    done < <(find -L "$root/applications" -type f -name '*.desktop' -print0)
+done
+
+# Registered IDs stay first; append the rest without duplicating those entries.
+if (( ${#desktop_files[@]} )); then
+    mapfile -d '' -t remaining < <(printf '%s\0' "${!desktop_files[@]}" | sort -z)
+    apps+=("${remaining[@]}")
+fi
+choices=() names=() icons=() kinds=()
+declare -A seen_apps=() name_counts=()
+for app in "${apps[@]}"; do
+    [[ -n $app && $app != *[[:cntrl:]]* ]] || continue
+    [[ -z ${seen_apps[$app]:-} && -n ${desktop_files[$app]:-} ]] || continue
+    seen_apps[$app]=1
+    mapfile -t metadata < <(desktop_metadata "${desktop_files[$app]}")
+    (( ${#metadata[@]} )) || continue
+    if [[ -n ${metadata[2]:-} ]]; then
+        executable=$(type -P -- "${metadata[2]}") || continue
+        [[ -f $executable && -x $executable ]] || continue
+    fi
+    label=${metadata[0]:-$app}
+    choices+=("$app")
+    names+=("$label")
+    icons+=("${metadata[1]:-application-x-executable}")
+    kinds+=(desktop)
+    name_counts[$label]=$(( ${name_counts[$label]:-0} + 1 ))
+done
+
+# Keep the first executable for each name, just as PATH lookup does.
+declare -A executables=()
+shopt -s nullglob dotglob
+path_rest=$PATH
+while :; do
+    directory=${path_rest%%:*}
+    directory=${directory:-.}
+    [[ $directory == /* ]] || directory="$PWD/$directory"
+    for executable in "$directory"/*; do
+        [[ -f $executable && -x $executable ]] || continue
+        [[ $executable == *[[:cntrl:]]* ]] && continue
+        name=${executable##*/}
+        [[ -n ${executables[$name]:-} ]] || executables[$name]=$executable
+    done
+    [[ $path_rest == *:* ]] || break
+    path_rest=${path_rest#*:}
+done
+if (( ${#executables[@]} )); then
+    mapfile -d '' -t commands < <(printf '%s\0' "${!executables[@]}" | sort -z)
+    for name in "${commands[@]}"; do
+        label="$name [PATH]"
+        choices+=("${executables[$name]}")
+        names+=("$label")
+        icons+=(application-x-executable)
+        kinds+=(command)
+        name_counts[$label]=$(( ${name_counts[$label]:-0} + 1 ))
+    done
+fi
+
+# A row index must identify the same entry in every list before anything launches.
+[[ ${#choices[@]} == "${#names[@]}" && ${#choices[@]} == "${#icons[@]}" &&
+   ${#choices[@]} == "${#kinds[@]}" ]] || die 'Inconsistent application menu.'
+
+menu() {
+    local index label
+    for index in "${!choices[@]}"; do
+        label=${names[index]}
+        if (( ${name_counts[$label]} > 1 )); then
+            label+=" (${choices[index]})"
+        fi
+        printf '%s\0icon\x1f%s\n' "$label" "${icons[index]}"
+    done
+    printf 'Other program…\0icon\x1fapplication-x-executable\n'
+}
+
+if selected=$(menu | fuzzel --dmenu --index --only-match --cache /dev/null --match-mode fzf --prompt 'Open with: '); then
+    # Match literal indices, never evaluate custom input as a shell array subscript.
+    for index in "${!choices[@]}"; do
+        if [[ $selected == "$index" ]]; then
+            if [[ ${kinds[index]} == desktop ]]; then
+                exec gtk-launch -- "${choices[index]}" "$file"
+            fi
+            exec -- "${choices[index]}" "$file"
+        fi
+    done
+    if [[ $selected == "${#choices[@]}" ]]; then
+        if program=$(fuzzel --dmenu --prompt-only='Program (name/path): '); then
+            [[ -n $program ]] || exit 0
+            executable=$(type -P -- "$program") || die "Executable not found: $program"
+            [[ -f $executable && -x $executable ]] || die "Not an executable file: $program"
+            exec -- "$executable" "$file"
+        else
+            status=$?
+            (( status == 2 )) && exit 0
+            die "Fuzzel failed (exit $status)."
+        fi
+    fi
+    die 'Invalid application selection.'
+else
+    status=$?
+    (( status == 2 )) && exit 0
+    die "Fuzzel failed (exit $status)."
+fi

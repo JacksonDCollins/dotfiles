@@ -1,0 +1,50 @@
+--- a/src/nnn.h
++++ b/src/nnn.h
+@@ -97,6 +97,7 @@
+ 	SEL_TRASH,
+ 	SEL_RM_RF,
+ 	SEL_OPENWITH,
++	SEL_APPPICKER,
+ 	SEL_NEW,
+ 	SEL_RENAME,
+ 	SEL_RENAMEMUL,
+@@ -242,7 +243,7 @@
+ 	{ CONTROL('X'),   SEL_TRASH },
+ 	{ 'X',            SEL_RM_RF },
+ 	/* Open in a custom application */
+-	{ 'o',            SEL_OPENWITH },
++	{ 'o',            SEL_APPPICKER },
+ 	{ CONTROL('O'),   SEL_OPENWITH },
+ 	/* Create a new file */
+ 	{ 'n',            SEL_NEW },
+--- a/src/nnn.c
++++ b/src/nnn.c
+@@ -6302,7 +6302,8 @@
+ 		  "c.  Toggle hidden\n"
+ 	"0\n"
+ 	"1FILES\n"
+-	       "9o ^O  Open with%15n  Create new/link\n"
++		  "co  App picker%13^O  Open with\n"
++		  "cn  Create new/link\n"
+ 	       "9f ^F  File stats%14P  Preview toggle\n"
+ 		 "b^R  Rename/dup%14r  Batch rename\n"
+ 		  "cz  Archive%17e  Edit file\n"
+@@ -9395,6 +9396,18 @@
+ 			cd = FALSE;
+ 			goto begin;
+ 		}
++		case SEL_APPPICKER:
++			if (!ndents)
++				goto nochange;
++			if (!getutil("dotfiles-open-with")) {
++				printwait("dotfiles-open-with is missing from PATH", &presel);
++				goto nochange;
++			}
++			mkpath(path, pdents[cur].name, newpath);
++			spawn("dotfiles-open-with", newpath, NULL, NULL, F_NORMAL | F_CHKRTN);
++			cfg.filtermode ? presel = FILTER : statusbar(path);
++			copycurname();
++			goto nochange;
+ 		case SEL_ARCHIVE: // fallthrough
+ 		case SEL_OPENWITH: // fallthrough
+ 		case SEL_NEW: // fallthrough

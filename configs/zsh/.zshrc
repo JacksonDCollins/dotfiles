@@ -88,3 +88,30 @@ fi
 if [[ -r "$HOME/.config/zsh/plugins.zsh" ]]; then
     source "$HOME/.config/zsh/plugins.zsh" load
 fi
+
+# Return to the browsed directory when nnn exits.
+n() {
+    [ "${NNNLVL:-0}" -eq 0 ] || {
+        echo "nnn is already running"
+        return
+    }
+
+    # Use the terminal's themed palette instead of fixed xterm colours.
+    export NNN_COLORS='#0404040404040404;44444444'
+    export NNN_FCOLORS='030304020005060f01030501'
+    export NNN_OPENER=/usr/share/nnn/plugins/nuke
+
+    [[ -x "$HOME/.local/bin/nnn-dotfiles" ]] || {
+        print -u2 'Build the configured nnn with: bash ~/dotfiles/install-nnn.sh'
+        return 1
+    }
+    local -x NNN_TMPFILE
+    NNN_TMPFILE=$(mktemp "${TMPDIR:-/tmp}/nnn-lastd.XXXXXXXXXX") || return 1
+    NNN_TMPFILE=${NNN_TMPFILE:A}
+    {
+        command "$HOME/.local/bin/nnn-dotfiles" -c -d -D -H -Q -R "$@"
+        [[ ! -s "$NNN_TMPFILE" ]] || source "$NNN_TMPFILE"
+    } always {
+        rm -f -- "$NNN_TMPFILE"
+    }
+}
