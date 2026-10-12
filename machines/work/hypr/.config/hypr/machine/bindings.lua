@@ -11,6 +11,7 @@ local monitors = require("machine.monitors")
 -- Replace the default number-row workspace bindings.
 for i = 1, 10 do
 	hl.unbind("SUPER + " .. (i % 10))
+	hl.unbind("SUPER + SHIFT + " .. (i % 10))
 end
 for index, output in ipairs(monitors) do
 	local key = "SUPER + " .. output[2]
@@ -29,4 +30,29 @@ for index, output in ipairs(monitors) do
 			hl.dispatch(hl.dsp.focus({ workspace = tostring(target) }))
 		end
 	end)
+	local shift_key = "SUPER + SHIFT + " .. output[2]
+	hl.unbind(shift_key)
+	bind(
+		shift_key,
+		"Move window to monitor "
+			.. output[1]
+			.. " / Move window between workspaces "
+			.. index
+			.. " and "
+			.. (index + 4),
+		function()
+			local monitor = hl.get_monitor(output[1])
+			if not monitor then
+				return
+			end
+
+			if not monitor.focused then
+				hl.dispatch(hl.dsp.window.move({ monitor = output[1] }))
+			else
+				local workspace = monitor.active_workspace
+				local target = workspace and workspace.id == index and index + 4 or index
+				hl.dispatch(hl.dsp.window.move({ workspace = tostring(target) }))
+			end
+		end
+	)
 end
