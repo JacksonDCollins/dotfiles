@@ -37,7 +37,7 @@ Singleton {
     }
     FileView {
         id: themeFile
-        path: root.themeDir + "/desktop.json"
+        path: root.themeDir + "/generated/desktop.generated.json"
         blockLoading: true
         watchChanges: true
         onFileChanged: reload()

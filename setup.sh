@@ -18,8 +18,8 @@ done
 if ! pacman -Q -- git stow "${packages[@]}" >/dev/null 2>&1; then
     sudo pacman -Syu --needed -- git stow "${packages[@]}"
 fi
-bash "$repo/install-nnn.sh"
+bash "$repo/scripts/install-nnn.sh"
 bash "$repo/install.sh" "$profile"
-bash "$repo/install-tmux-plugins.sh"
-bash "$repo/install-runtimes.sh"
-bash "$repo/install-zsh-plugins.sh"
+bash "$repo/scripts/install-tmux-plugins.sh"
+bash "$repo/scripts/install-runtimes.sh"
+bash "$repo/scripts/install-zsh-plugins.sh"

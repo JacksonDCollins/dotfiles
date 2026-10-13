@@ -3,9 +3,9 @@
 set -euo pipefail
 (( EUID != 0 )) || { echo 'Build nnn as your regular user, not root.' >&2; exit 1; }
 [[ $# == 0 || ( $# == 2 && $1 == --build-only && -n $2 ) ]] || {
-    echo 'Usage: install-nnn.sh [--build-only OUTPUT_DIRECTORY]' >&2; exit 1;
+    echo 'Usage: scripts/install-nnn.sh [--build-only OUTPUT_DIRECTORY]' >&2; exit 1;
 }
-repo=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+repo=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 output="$HOME/.local/bin/nnn-dotfiles"
 if (( $# )); then output="$2/nnn-dotfiles"; fi
 [[ $output == /* ]] || output="$PWD/$output"

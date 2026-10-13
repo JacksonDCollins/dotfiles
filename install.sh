@@ -312,6 +312,11 @@ if ! command -v stow >/dev/null 2>&1; then
     exit 1
 fi
 
+if ! command -v jq >/dev/null 2>&1; then
+    printf '%s\n' 'Error: jq is required to generate application themes.' >&2
+    exit 1
+fi
+
 if [ ! -d "$REPO_ROOT/machines/$MACHINE" ]; then
     printf "Error: Machine configuration '%s' not found\n" "$MACHINE" >&2
     printf '%s\n' 'Available machines:' >&2
@@ -320,6 +325,9 @@ if [ ! -d "$REPO_ROOT/machines/$MACHINE" ]; then
     done
     exit 1
 fi
+
+# Update native theme includes for setup.sh and configuration-only installs alike.
+bash "$REPO_ROOT/scripts/generate-theme.sh" --profile "$MACHINE"
 
 TRANSACTION_DIR=$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-install.XXXXXX")
 SNAPSHOT_MANIFEST="$TRANSACTION_DIR/snapshots.tsv"

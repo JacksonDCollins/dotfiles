@@ -1,7 +1,7 @@
 {
-  "theme": "system",
+  "theme": "hyprcachy",
   "themes": [
-    "~/.config/theme/pi.json"
+    "~/.config/theme/generated/pi.generated.json"
   ],
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",

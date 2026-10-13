@@ -1,1 +1,1 @@
-dofile(vim.fn.expand '~/.config/theme/nvim.lua')
+vim.cmd.colorscheme 'dotfiles'

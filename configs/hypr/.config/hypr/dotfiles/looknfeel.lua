@@ -1,4 +1,4 @@
-dofile(os.getenv("HOME") .. "/.config/theme/hyprland.lua")
+dofile(os.getenv("HOME") .. "/.config/theme/generated/hyprland.generated.lua")
 
 hl.config({
 	cursor = {

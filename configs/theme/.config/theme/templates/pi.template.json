@@ -1,22 +1,21 @@
 {
-  "$schema": "https://raw.githubusercontent.com/earendil-works/pi/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json",
-  "name": "catppuccin-mocha",
+  "name": "{{name.json}}",
   "vars": {
-    "base": "#1e1e2e",
-    "mantle": "#181825",
-    "surface0": "#313244",
-    "surface1": "#45475a",
-    "surface2": "#585b70",
-    "overlay0": "#6c7086",
-    "subtext0": "#a6adc8",
-    "text": "#cdd6f4",
-    "mauve": "#cba6f7",
-    "red": "#f38ba8",
-    "green": "#a6e3a1",
-    "yellow": "#f9e2af",
-    "blue": "#89b4fa",
-    "teal": "#94e2d5",
-    "peach": "#fab387"
+    "base": "{{base}}",
+    "mantle": "{{mantle}}",
+    "surface0": "{{surface0}}",
+    "surface1": "{{surface1}}",
+    "surface2": "{{surface2}}",
+    "overlay0": "{{overlay0}}",
+    "subtext0": "{{subtext0}}",
+    "text": "{{text}}",
+    "mauve": "{{mauve}}",
+    "red": "{{red}}",
+    "green": "{{green}}",
+    "yellow": "{{yellow}}",
+    "blue": "{{blue}}",
+    "teal": "{{teal}}",
+    "peach": "{{peach}}"
   },
   "colors": {
     "accent": "mauve",
@@ -72,8 +71,8 @@
     "bashMode": "peach"
   },
   "export": {
-    "pageBg": "#1e1e2e",
-    "cardBg": "#313244",
-    "infoBg": "#181825"
+    "pageBg": "{{base}}",
+    "cardBg": "{{surface0}}",
+    "infoBg": "{{mantle}}"
   }
 }

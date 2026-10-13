@@ -6,6 +6,7 @@ nnn
 less
 tmux
 quickshell
+jq
 playerctl
 bluez-utils
 util-linux

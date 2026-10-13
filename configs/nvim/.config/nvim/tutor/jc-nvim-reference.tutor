@@ -252,7 +252,7 @@ siw(    surround current word with spaced parentheses
 ## Optional UIs and Sources *jc-ref-sources*
 - `:ConformInfo`: n `q`/`<C-c>` close. Gitsigns focused popup n `q` closes. [Gitsigns help](gitsigns).
 - Gitsigns blame n `<CR>` menu; `r`/`R` reblame commit/parent; `d` diff tab; `s/S/e` show vsplit/tab/current.
-- Editor tools: edit the dotfiles mise config, then run `bash install-runtimes.sh` outside Neovim.
+- Editor tools: edit the dotfiles mise config, then run `bash scripts/install-runtimes.sh` outside Neovim.
 - Optional Sidekick CLI-local n/t `<C-b>`/`<C-f>` pick context, `<C-.>` hide, `<C-z>` previous window.
 - CLI n `q`/`<C-q>` hide; t `<C-q>` Normal mode, `<C-p>` prompt; n `<CR>` enters terminal-input and sends Enter.
 - CLI t `<C-h/j/k/l>` navigate windows or pass through; not global navigator defaults.

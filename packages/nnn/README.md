@@ -9,8 +9,8 @@ The built-in help documents the new binding. While filtering, `o` remains text.
 From the dotfiles repository, as your normal user:
 
 ```sh
-bash install-nnn.sh                         # install ~/.local/bin/nnn-dotfiles
-bash install-nnn.sh --build-only /tmp/nnn-build  # build there without installing
+bash scripts/install-nnn.sh                         # install ~/.local/bin/nnn-dotfiles
+bash scripts/install-nnn.sh --build-only /tmp/nnn-build  # build there without installing
 ```
 
 The script resolves GitHub's latest-release redirect once per run, then downloads
@@ -29,7 +29,7 @@ libraries; source versions advance on each run, not in a background service.
 `setup.sh` builds it before applying dotfiles. Stock `/usr/bin/nnn` still supplies
 nuke and remains usable independently; the `n` shell helper uses this companion.
 
-To upgrade the companion, rerun `install-nnn.sh` or `setup.sh`. If the latest
+To upgrade the companion, rerun `scripts/install-nnn.sh` or `setup.sh`. If the latest
 release changes the patched code incompatibly, the build stops; rebase the patch
 rather than bypassing verification or falling back to an older release.
 Pacman updates to stock nnn do not rebuild the companion automatically.

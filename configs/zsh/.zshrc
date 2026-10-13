@@ -102,7 +102,7 @@ n() {
     export NNN_OPENER=/usr/share/nnn/plugins/nuke
 
     [[ -x "$HOME/.local/bin/nnn-dotfiles" ]] || {
-        print -u2 'Build the configured nnn with: bash ~/dotfiles/install-nnn.sh'
+        print -u2 'Build the configured nnn with: bash ~/dotfiles/scripts/install-nnn.sh'
         return 1
     }
     local -x NNN_TMPFILE

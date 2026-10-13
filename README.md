@@ -2,13 +2,13 @@
 
 On Arch/CachyOS, run `bash setup.sh <profile>` as your regular user. It installs
 missing dependencies from `packages-arch.txt` (and Stow) via sudo/pacman, then runs
-`install.sh`, `install-tmux-plugins.sh`, `install-runtimes.sh`, and
-`install-zsh-plugins.sh`. A package install performs a full system upgrade to avoid partial
+`install.sh`, `scripts/install-tmux-plugins.sh`, `scripts/install-runtimes.sh`, and
+`scripts/install-zsh-plugins.sh`. A package install performs a full system upgrade to avoid partial
 Arch upgrades; pacman asks for confirmation. If everything is installed, no sudo
 or package transaction is needed. Profiles are the subdirectories of `machines/`;
 the default is `default`.
 
-`bash install.sh <profile>` remains configuration-only, with GNU Stow required.
+`bash install.sh <profile>` remains configuration-only, with GNU Stow and jq required.
 Use it for offline reapplication or on other distributions after installing the
 equivalent dependencies yourself. Uninstalling dotfiles does not remove packages.
 Stow installs complete `.bashrc`, `.zshrc`, Foot, tmux, and Hyprland configs directly.
@@ -59,17 +59,17 @@ Normal opening still uses pacman's `/usr/share/nnn/plugins/nuke` in terminal mod
 Automatic filtering is off; `/` enters the filter, where `o` is ordinary text.
 
 `n()` sets colour roles using the terminal palette already supplied by
-`~/.config/theme/foot.ini`: blue contexts/directories, green executables, teal
+`~/.config/theme/generated/foot.generated.ini`: blue contexts/directories, green executables, teal
 symlinks, red errors, and muted file details. Ordinary files keep the terminal
 foreground. No separate nnn theme file or RGB conversion is needed; other
 terminals use their own palette for the same roles.
 
-`setup.sh` builds the companion using `install-nnn.sh` before applying dotfiles.
-For an existing setup, run `bash install-nnn.sh` and apply the updated dotfiles
+`setup.sh` builds the companion using `scripts/install-nnn.sh` before applying dotfiles.
+For an existing setup, run `bash scripts/install-nnn.sh` and apply the updated dotfiles
 with `install.sh` before opening a new shell. Stock `/usr/bin/nnn` is untouched.
 Each build selects the latest stable upstream release and verifies its signature.
 It stops if our patch no longer applies, without silently choosing an older version.
-Rerun `install-nnn.sh` or `setup.sh` to update; pacman alone does not rebuild it.
+Rerun `scripts/install-nnn.sh` or `setup.sh` to update; pacman alone does not rebuild it.
 
 ## Application picker
 
@@ -126,14 +126,14 @@ Ctrl+X, then Ctrl+E opens the current command in Neovim; save and quit to return
 it to the prompt, then press Enter to execute. Ctrl+X, then Ctrl+X toggles Deja
 suggestions, leaving Ctrl+X itself free as a chord prefix.
 
-`setup.sh` installs runtimes first, then runs `install-zsh-plugins.sh` as your
+`setup.sh` installs runtimes first, then runs `scripts/install-zsh-plugins.sh` as your
 regular user. Zinit v3.17.0 is bootstrapped under
 `${XDG_DATA_HOME:-~/.local/share}/zinit`; plugins are downloaded without executing
 them. Deja's binary is pinned to 0.4.2 in mise, with its plugin at v0.4.2 and
 syntax highlighting at 0.8.0. Existing checkouts are not reset or automatically
 updated. Missing plugins are skipped on shell startup, never downloaded there.
-After configuration-only installation, run `bash install-runtimes.sh` and
-`bash install-zsh-plugins.sh`, then open a new Zsh shell.
+After configuration-only installation, run `bash scripts/install-runtimes.sh` and
+`bash scripts/install-zsh-plugins.sh`, then open a new Zsh shell.
 
 Updates are explicit: adjust the plugin's `ver` in `plugins.zsh`, then use
 Zinit's `update <owner/repository>` command with that version loaded; use
@@ -243,14 +243,14 @@ as does unzip. The clangd download targets Linux x86-64.
 Initial setup needs internet and can take several minutes.
 
 Runtime installation is explicit setup work, never a shell/editor startup hook.
-After configs are installed, rerun `bash install-runtimes.sh` to install missing
+After configs are installed, rerun `bash scripts/install-runtimes.sh` to install missing
 versions and refresh shims. It runs mise from HOME rather than the caller's project
 and refuses root; home/global mise configuration applies. Shells activate mise,
 and Neovim adds its shims before loading plugins, including for GUI launches.
 
 Pinning means `node = "24.21.0"`, not `node = "latest"`: setup does not silently
 upgrade it when a new release appears. To upgrade, edit the tracked config's exact
-version and rerun `install-runtimes.sh`. These are selected published versions,
+version and rerun `scripts/install-runtimes.sh`. These are selected published versions,
 not a claim that every toolchain has been integration-tested. Zig and ZLS share
 `vars.zig_version`, so the pair is updated in one place.
 Project `mise.toml` files can override these global defaults; install/trust project
@@ -322,7 +322,7 @@ icons use the installed icon themes. No custom application index, helper script
 or background service is needed. Fuzzel keeps its normal launch-frequency cache.
 
 Dotfiles setup installs `fuzzel`. Behavior lives in `~/.config/fuzzel/fuzzel.ini`;
-fonts, colors and layout live in the shared `~/.config/theme/fuzzel.ini` include.
+fonts, colors and layout live in the shared `~/.config/theme/generated/fuzzel.generated.ini` include.
 For an existing installation, install `fuzzel`, run `bash install.sh` here, then
 run `hyprctl reload` to pick up the binding. No Quickshell restart is required.
 
@@ -408,17 +408,77 @@ the current snapshot format. No automatic reload is performed by editing these f
 
 ## Appearance
 
-Catppuccin Mocha is fixed across Neovim, Foot, tmux, Hyprland borders, and Quickshell
-notifications, with mauve accents. The `configs/theme` Stow package installs one
-shared `~/.config/theme/` directory:
+Theme sources live in **`configs/theme/.config/theme/`**:
 
-- `nvim.lua`: theme plugin, variant, and options.
-- `foot.ini`: terminal palette.
-- `fuzzel.ini`: launcher font, palette and layout.
-- `tmux.conf`: pane, message, and statusline colors.
-- `hyprland.lua`: desktop border colors.
-- `hyprlock.conf`: lock-screen colors, clock and password-field layout.
-- `desktop.json` and `wallpaper.jpeg`: Quickshell colors (including notifications), fonts and background image.
+- `theme.json` contains the shared font, default `foot_font_size`, palette and extra colors.
+- `templates/appname.template.extension` is readable native configuration. Edit application
+  settings, sizes, layout and highlight mappings here.
+- `generated/appname.generated.extension` is the substituted output that applications load.
+  **Do not edit generated files by hand.**
+
+The `hyprcachy` theme uses the Catppuccin Mocha palette with mauve accents. Templates use
+`{{mauve}}` for `#RRGGBB`, `{{mauve.hex}}` for bare `RRGGBB`, and `{{font}}` or
+`{{name}}` for raw text. Inside JSON strings, use `"{{font.json}}"` and
+`"{{name.json}}"` to escape quotes and backslashes safely. The generator defines
+`name` as the fixed `hyprcachy` identity; it is not a setting in `theme.json`.
+Native dollar signs
+and application syntax are left alone. `extra_colors` holds deliberate exceptions
+such as Foot's selection background. The wallpaper remains a separate image.
+
+`bash scripts/generate-theme.sh` finds `templates/*.template.*` files and substitutes values using
+Bash and jq; there are no app-specific renderers or additional template-engine
+dependencies. It preserves template formatting, including trailing newlines.
+Both `setup.sh` and direct `install.sh` runs generate files before Stow. No watcher
+or automatic app reload is added by the generator. Templates and generated outputs
+stay in Git; commit regenerated files alongside their source changes.
+
+```sh
+bash scripts/generate-theme.sh                       # generate for the default profile
+bash scripts/generate-theme.sh --profile jackhome     # merge jackhome overrides
+bash scripts/generate-theme.sh --profile jackhome --check  # check that profile; write nothing
+bash scripts/generate-theme.sh --profile jackhome --output-dir /tmp/theme-preview
+```
+
+The optional `machines/PROFILE/theme.json` supplies only overridden values;
+objects such as the palette merge by key. The installer passes its selected
+machine profile. Manual generation defaults to `default`: pass the same
+`--profile` when regenerating, checking or previewing another machine. Profiles
+share the same generated filenames; generating a different profile replaces the
+previous profile's output. There is no remembered-profile state or extra template.
+
+Generation validates shared variables and placeholders, rejecting unknown or
+unclosed placeholders. It substitutes once without evaluating template text, but
+does not parse application-specific configuration: templates must remain valid
+native configs. All templates are rendered before publishing anything; symlink
+outputs are refused and changed files are staged, then replaced atomically per
+file. Unchanged files are not rewritten. The whole bundle is not one atomic
+operation. Generation updates repository files (and any existing Stow links);
+the installer's link rollback does not undo those generated changes. Preview in
+a separate directory if you do not want to affect linked themes yet.
+
+The `configs/theme` Stow package installs these template/output pairs under
+`~/.config/theme/`, alongside `theme.json` and `wallpaper.jpeg`:
+
+| Editable template | Consumed output |
+| --- | --- |
+| `templates/nvim.template.lua` | `generated/nvim.generated.lua` |
+| `templates/foot.template.ini` | `generated/foot.generated.ini` |
+| `templates/fuzzel.template.ini` | `generated/fuzzel.generated.ini` |
+| `templates/tmux.template.conf` | `generated/tmux.generated.conf` |
+| `templates/hyprland.template.lua` | `generated/hyprland.generated.lua` |
+| `templates/hyprlock.template.conf` | `generated/hyprlock.generated.conf` |
+| `templates/pi.template.json` | `generated/pi.generated.json` |
+| `templates/desktop.template.json` | `generated/desktop.generated.json` |
+
+Foot uses `font={{font}}:size={{foot_font_size}}` in its single template.
+The default size is 9 points; `machines/jackhome/theme.json` overrides only the
+size to 12, retaining the shared font family. Native machine configs do not
+repeat the font declaration. The tmux keybindings popup
+uses `less`, inheriting terminal colors: `j`/`k` scroll, `/` searches, `n`/`N`
+repeat the search, and `q` closes it.
+Pi selects `hyprcachy` rather than the terminal-derived `system` theme.
+Its template reads the generator's fixed name through `{{name.json}}`, so the
+generated identifier matches Pi's selection.
 
 Quickshell's four font size fields accept positive integer pixels or percentages
 of the widget's smaller monitor dimension in logical pixels (after display scaling).
@@ -441,13 +501,27 @@ it with `Theme.forScreen(screen)` and pass it to widgets through a required
 bindings update with screen dimensions. New widgets must accept and forward the
 same theme object.
 
-The app configs load these native theme files, keeping appearance separate from
-behavior and keybindings. To change the look later, edit or replace this bundle;
-there is no theme switcher, generator, or Omarchy dependency. Always install the
-`theme` package alongside these apps, including when using Stow manually.
-Neovim uses Catppuccin's normal opaque backgrounds; forced-transparency overrides
-are gone. Existing statusline and netrw highlight hooks remain. The bundled
-purple wallpaper image is unchanged.
+App configs load `~/.config/theme/generated/` files, keeping appearance separate from
+behavior and keybindings. When using Stow manually, generate first and re-Stow
+`theme` plus the affected app packages before restarting or reloading anything;
+existing individual links do not pick up new paths automatically.
+
+Neovim uses our native `dotfiles` colorscheme without a theme plugin.
+`templates/nvim.template.lua` owns editor, syntax/Tree-sitter, LSP and plugin highlighting,
+background settings and terminal colors. Its palette table uses placeholders;
+highlights and terminal entries refer to that table by name. Native and plugin
+default links cover remaining groups. Add mappings in this template when a new
+plugin needs them; detailed Catppuccin-specific styling is not cloned.
+Plain LSP variables leave their colors to Tree-sitter, while meaningful semantic
+modifiers remain styled. Targeted overrides cover Markdown headings, Lua/Python
+constructors, YAML keys/anchors and Bash built-ins. Diff, diagnostic, GitSigns,
+search and cursor-line backgrounds are blended from the existing palette at load
+time, with no extra fixed colors or generator logic. Other palettes must retain
+the same named roles; for a light palette, also set `vim.o.background = "light"`
+in the template. Contrast still depends on the chosen palette.
+The `colors/dotfiles.lua` entrypoint preserves `:colorscheme dotfiles` and the
+statusline/netrw `ColorScheme` hooks. nnn inherits Foot's ANSI palette and needs
+no separate template. There is no Omarchy dependency.
 
 Reapply dotfiles to install these settings, then reopen Neovim and Foot. The
 installer reloads tmux if running; logging out and back in applies the desktop
@@ -456,9 +530,9 @@ and notification settings without manually restarting individual services.
 ## Quickshell
 
 `configs/quickshell` installs the wallpaper and bar on each monitor. It loads
-`~/.config/theme/desktop.json`; change its `wallpaper` filename to select another
-image in the theme bundle. The wallpaper does not take input focus or reserve
-screen space.
+the generated `~/.config/theme/generated/desktop.generated.json`; change `wallpaper` in
+`templates/desktop.template.json` and regenerate to select another image in the theme bundle.
+The wallpaper does not take input focus or reserve screen space.
 
 Super+B focuses the bar on the focused monitor. Tab/Shift+Tab navigate its controls;
 Enter/Space activate, and Escape closes a popup or leaves bar keyboard mode.
@@ -479,8 +553,8 @@ logout shortcut remains immediate; Super-L requests a confirmed screen lock.
 Hyprcachy provisions `hyprlock` and `hypridle`. The Hyprland Stow package supplies
 complete lock/idle configs, a session-scoped `hyprlock.service`, and an enabled
 `hypridle.service`. The locker runs independently of Quickshell, uses PAM with
-zero grace time, and gets its Catppuccin appearance from
-`~/.config/theme/hyprlock.conf`. Hypridle locks after five idle minutes, powers
+zero grace time, and gets its `hyprcachy` appearance from
+`~/.config/theme/generated/hyprlock.generated.conf`. Hypridle locks after five idle minutes, powers
 screens off after ten, respects idle inhibitors, and does not auto-suspend.
 
 The session helper waits for hypridle's native compositor lock notification via
@@ -497,8 +571,8 @@ and `systemctl --user daemon-reload`. Test `systemctl --user start hyprlock.serv
 and verify that you can unlock **before** starting `hypridle.service` or leaving
 auto-lock enabled at the next login. Then start hypridle and restart Quickshell.
 Private fake-command checks cover lock confirmation and refusal paths; they do not
-replace real PAM, suspend/resume or multi-monitor validation. Current validation
-status is recorded in the [desktop checklist](QUICKSHELL-TODO.md).
+replace real PAM, suspend/resume or multi-monitor validation, which remains
+outstanding.
 
 The audio pill opens native PipeWire controls for output and microphone selection,
 volume/mute, and individual application playback streams. Sliders cover 0–100%
@@ -509,7 +583,7 @@ and no microphone recording or level-monitor stream is started. Device removal
 and unavailable/unready nodes disable their controls. The bar tracks the default
 output continuously; additional node tracking is released when the popup closes.
 No new package or command-line helper is required. Real hardware and Bluetooth
-routing checks remain on the [desktop checklist](QUICKSHELL-TODO.md).
+routing checks remain outstanding.
 
 The network pill uses native `Quickshell.Networking`/NetworkManager state for
 wired and Wi-Fi connectivity, including limited-access and captive-portal status.
@@ -670,13 +744,12 @@ Private offscreen checks cover popup input, long text and toast output selection
 the toast layer-shell window is substituted with a floating window for those checks.
 They do not prove real Wayland placement or lock-screen privacy. Toasts stay on the
 ordinary top layer; native Hyprlock/compositor isolation, not QML, owns lock security.
-See the [desktop checklist](QUICKSHELL-TODO.md) for outstanding live checks.
+Live Wayland placement and lock-screen privacy checks remain outstanding.
 
-Add future widgets to this same shell rather than launching another copy. The
-archived Omarchy widget under `deprecated/` is not installed.
+Add future widgets to this same shell rather than launching another copy.
 
 Shell-owned icons use Material Symbols Rounded through `theme.iconFont`, configured
-in `desktop.json` (`font.iconFamily` and `font.iconPixelSize`). Use symbol names such
+in `templates/desktop.template.json` (`font.iconFamily` and `font.iconPixelSize`). Use symbol names such
 as `play_arrow`, `pause`, and `chevron_right` in `MaterialIcon` items, which use native
 font rendering to avoid distance-field artifacts. Keep normal labels on
 `theme.font`/`theme.smallFont`. App-provided tray icons and artwork are
