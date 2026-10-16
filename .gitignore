@@ -3,6 +3,9 @@ sunshine.log
 sunshine_state.json
 **/sunshine/credentials/
 
+# Generated theme output
+**/theme/generated/
+
 # Editor temporary files
 *.swp
 *.swo
