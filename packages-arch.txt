@@ -2,6 +2,9 @@ foot
 fuzzel
 gtk3
 neovim
+vis
+vis-lexers
+lua-lpeg
 nnn
 less
 tmux
