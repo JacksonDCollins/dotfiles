@@ -2,15 +2,22 @@
 
 # Keep PATH entries unique across nested shells.
 typeset -U path
-path+=("$HOME/.local/bin")
+path=("$HOME/.local/bin" $path)
 if [[ -d $HOME/tmux-bins/tsm/bin ]]; then
     path=("$HOME/tmux-bins/tsm/bin" $path)
 fi
 export PATH
 export DOTFILES="$HOME/dotfiles"
-export EDITOR=nvim
-export VISUAL=nvim
-export SUDO_EDITOR=nvim
+export EDITOR=vis #nvim
+export VISUAL=vis #nvim
+export SUDO_EDITOR=vis #nvim
+
+# Shared nnn defaults, inherited by terminal and editor launches.
+export NNN_OPTS='cdDHQR'
+export NNN_COLORS='#0404040404040404;44444444'
+export NNN_FCOLORS='030304020005060f01030501'
+export NNN_OPENER="${NNN_OPENER:-/usr/share/nnn/plugins/nuke}"
+
 setopt GLOB_DOTS
 alias vimdiff='nvim -d'
 
@@ -47,7 +54,7 @@ bindkey '^[[1;3C' forward-word
 
 autoload -Uz edit-command-line
 zle -N edit-command-line
-zstyle ':zle:edit-command-line' editor nvim
+zstyle ':zle:edit-command-line' editor vis #nvim
 bindkey -r '^X' # Remove Deja's old single-key toggle when reloading.
 bindkey '^X^E' edit-command-line
 
@@ -89,29 +96,25 @@ if [[ -r "$HOME/.config/zsh/plugins.zsh" ]]; then
     source "$HOME/.config/zsh/plugins.zsh" load
 fi
 
-# Return to the browsed directory when nnn exits.
+# Open a directory in vis's nnn explorer without changing the parent shell's cwd.
+vis() {
+    if (( $# == 1 )) && [[ -d "$1" ]]; then
+        (cd -- "$1" && VIS_NNN_START=1 command vis)
+    else
+        command vis "$@"
+    fi
+}
+
+# Launch the custom nnn without changing the shell's working directory.
 n() {
     [ "${NNNLVL:-0}" -eq 0 ] || {
         echo "nnn is already running"
         return
     }
 
-    # Use the terminal's themed palette instead of fixed xterm colours.
-    export NNN_COLORS='#0404040404040404;44444444'
-    export NNN_FCOLORS='030304020005060f01030501'
-    export NNN_OPENER=/usr/share/nnn/plugins/nuke
-
     [[ -x "$HOME/.local/bin/nnn-dotfiles" ]] || {
         print -u2 'Build the configured nnn with: bash ~/dotfiles/scripts/install-nnn.sh'
         return 1
     }
-    local -x NNN_TMPFILE
-    NNN_TMPFILE=$(mktemp "${TMPDIR:-/tmp}/nnn-lastd.XXXXXXXXXX") || return 1
-    NNN_TMPFILE=${NNN_TMPFILE:A}
-    {
-        command "$HOME/.local/bin/nnn-dotfiles" -c -d -D -H -Q -R "$@"
-        [[ ! -s "$NNN_TMPFILE" ]] || source "$NNN_TMPFILE"
-    } always {
-        rm -f -- "$NNN_TMPFILE"
-    }
+    command "$HOME/.local/bin/nnn-dotfiles" "$@"
 }

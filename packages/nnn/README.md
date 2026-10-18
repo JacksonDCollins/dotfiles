@@ -1,10 +1,14 @@
-# nnn plain-o customization
+# nnn customizations
 
 Each build resolves upstream's **latest stable release**. `plain-o.patch` was last
 validated against nnn **5.3**, but does not pin the version. It binds plain `o` to
 `dotfiles-open-with` on the hovered file. Ctrl+O retains the original command
 prompt; Enter, nuke, selections and plugin bindings are otherwise unchanged.
 The built-in help documents the new binding. While filtering, `o` remains text.
+
+`picker-right.patch` lets Right/l confirm regular files in picker mode, just like
+Enter. Directory traversal and non-picker opening are unchanged. Vis uses this
+with `-0 -p -` to receive NUL-separated paths without a custom opener.
 
 From the dotfiles repository, as your normal user:
 
@@ -16,7 +20,7 @@ bash scripts/install-nnn.sh --build-only /tmp/nnn-build  # build there without i
 The script resolves GitHub's latest-release redirect once per run, then downloads
 that release's source archive and detached signature over HTTPS. It verifies the
 signature using a temporarily downloaded maintainer public key in an isolated
-GPG home, applies the local patch with zero fuzz, and builds with readline enabled.
+GPG home, applies the local patches with zero fuzz, and builds with readline enabled.
 There is no fixed-version fallback, extra JSON parser or new package dependency.
 It runs upstream's `-K` collision check and checks its output too, because `-K`
 returns success even on collisions. Publication uses an atomic rename, leaving

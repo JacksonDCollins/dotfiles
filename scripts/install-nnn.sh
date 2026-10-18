@@ -50,6 +50,7 @@ fingerprint=$("${gpg_command[@]}" --with-colons --show-keys "$key" |
 tar -xzf "$work/source.tar.gz" --no-same-owner -C "$work"
 source_dir="$work/nnn-$version"
 patch --batch --forward --fuzz=0 -d "$source_dir" -p1 < "$repo/packages/nnn/plain-o.patch"
+patch --batch --forward --fuzz=0 -d "$source_dir" -p1 < "$repo/packages/nnn/picker-right.patch"
 make -C "$source_dir" O_NORL=0
 # Upstream -K reports collisions on stderr but still exits successfully.
 if ! NNN_OPTS='' "$source_dir/nnn" -K > "$work/key-check.log" 2>&1 || [[ -s $work/key-check.log ]]; then
@@ -61,4 +62,4 @@ mkdir -p -- "$(dirname -- "$output")"
 pending=$(mktemp "$(dirname -- "$output")/.nnn-dotfiles.XXXXXX")
 install -m 0755 -- "$source_dir/nnn" "$pending"
 mv -fT -- "$pending" "$output"
-printf 'Built nnn %s with plain-o application picker: %s\n' "$version" "$output"
+printf 'Built nnn %s with plain-o application picker and Right-to-pick: %s\n' "$version" "$output"

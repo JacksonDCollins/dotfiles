@@ -18,6 +18,7 @@ done
 if ! pacman -Q -- git stow "${packages[@]}" >/dev/null 2>&1; then
     sudo pacman -Syu --needed -- git stow "${packages[@]}"
 fi
+bash "$repo/scripts/install-vis.sh"
 bash "$repo/scripts/install-nnn.sh"
 bash "$repo/install.sh" "$profile"
 bash "$repo/scripts/install-tmux-plugins.sh"

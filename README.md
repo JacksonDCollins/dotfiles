@@ -48,17 +48,31 @@ repository as the user, installs packages from this validated data-only list as
 root, then calls this repository's `setup.sh` once as the user. Dotfiles own the
 config/runtime installation sequence; Hyprcachy never executes dotfiles scripts as root. Publish changes here before updating a Hyprcachy installer that requires them.
 
+## vis editor
+
+`setup.sh` builds a [patched vis with retained buffers](packages/vis/) using
+`scripts/install-vis.sh`. `~/.local/bin/vis` launches the private build;
+`/usr/bin/vis` remains untouched. Configuration stays in `.config/vis`.
+
+Splits behave normally. **Space → e** changes only the current split's file;
+buffers retain unsaved text and undo history even when no split displays them.
+`:bnext` / `:bprev` switch buffers, `:buffers` lists them, and `:bdelete`
+removes the current buffer (`!` discards its changes). **Ctrl-w j/k** switches
+splits. `:q` closes a split; closing the last split and `:qall` check all buffers,
+including hidden ones, for unsaved changes. See the package README for details,
+rebuilding and rollback.
+
 ## nnn file manager
 
-Run `n` for the configured file manager and change-directory-on-exit helper.
-Each invocation uses its own private temporary quit-directory file, cleaned up
-on return, so concurrent terminal panes cannot overwrite each other's destination.
+Run `n` for the configured file manager. Exiting leaves your shell's working
+directory unchanged.
 It uses `~/.local/bin/nnn-dotfiles`, a [custom nnn build](packages/nnn/) with plain
 `o` bound to the application picker. Ctrl+O retains the original command prompt.
 Normal opening still uses pacman's `/usr/share/nnn/plugins/nuke` in terminal mode.
 Automatic filtering is off; `/` enters the filter, where `o` is ordinary text.
 
-`n()` sets colour roles using the terminal palette already supplied by
+`.zshrc` exports `NNN_OPTS`, `NNN_COLORS`, `NNN_FCOLORS` and `NNN_OPENER` so
+terminal and editor launches share settings. Colour roles use the palette supplied by
 `~/.config/theme/generated/foot.generated.ini`: blue contexts/directories, green executables, teal
 symlinks, red errors, and muted file details. Ordinary files keep the terminal
 foreground. No separate nnn theme file or RGB conversion is needed; other
@@ -67,6 +81,15 @@ terminals use their own palette for the same roles.
 `setup.sh` builds the companion using `scripts/install-nnn.sh` before applying dotfiles.
 For an existing setup, run `bash scripts/install-nnn.sh` and apply the updated dotfiles
 with `install.sh` before opening a new shell. Stock `/usr/bin/nnn` is untouched.
+The `nnn` launcher in `~/.local/bin` only forwards to `nnn-dotfiles`; it contains
+no configuration. Keep `~/.local/bin` before `/usr/bin` in `PATH`; Zsh and the UWSM
+session configure this. Vis invokes the custom binary directly in picker mode,
+without an interactive shell, temporary opener or process signals. Right/l and
+Enter confirm files; directories are still entered normally. Space → e starts
+at the current file's directory with that file highlighted (or the working
+directory for an unnamed buffer). `vis directory` opens the picker on startup;
+cancelling that startup picker exits vis. Reload `.zshrc` and restart vis after
+changing the exported settings.
 Each build selects the latest stable upstream release and verifies its signature.
 It stops if our patch no longer applies, without silently choosing an older version.
 Rerun `scripts/install-nnn.sh` or `setup.sh` to update; pacman alone does not rebuild it.

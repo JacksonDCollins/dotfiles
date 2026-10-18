@@ -1,0 +1,13 @@
+--- a/src/nnn.c
++++ b/src/nnn.c
+@@ -8828,8 +8828,8 @@
+-			/* If opened as vim plugin and Enter/^M pressed, pick */
+-			if (g_state.picker && (sel == SEL_OPEN)) {
++			/* Pick files on Enter or navigation-in (Right/l). */
++			if (g_state.picker) {
+ 				if (nselected == 0) /* Pick if none selected */
+ 					appendfpath(newpath, mkpath(path, pent->name, newpath));
+ 				return EXIT_SUCCESS;
+ 			}
+ 
+ 			if (sel == SEL_NAV_IN) {
