@@ -18,6 +18,7 @@ done
 if ! pacman -Q -- git stow "${packages[@]}" >/dev/null 2>&1; then
     sudo pacman -Syu --needed -- git stow "${packages[@]}"
 fi
+# The local fork is packaged separately; it is not in the configured repositories.
 bash "$repo/scripts/install-vis.sh"
 bash "$repo/scripts/install-nnn.sh"
 bash "$repo/install.sh" "$profile"

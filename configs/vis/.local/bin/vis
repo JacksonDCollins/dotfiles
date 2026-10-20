@@ -1,4 +1,0 @@
-#!/bin/sh
-bundle="$HOME/.local/lib/vis-dotfiles/current"
-export PATH="$bundle/bin:$PATH"
-exec "$bundle/bin/vis" "$@"

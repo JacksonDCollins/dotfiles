@@ -3,10 +3,11 @@
 On Arch/CachyOS, run `bash setup.sh <profile>` as your regular user. It installs
 missing dependencies from `packages-arch.txt` (and Stow) via sudo/pacman, then runs
 `install.sh`, `scripts/install-tmux-plugins.sh`, `scripts/install-runtimes.sh`, and
-`scripts/install-zsh-plugins.sh`. A package install performs a full system upgrade to avoid partial
-Arch upgrades; pacman asks for confirmation. If everything is installed, no sudo
-or package transaction is needed. Profiles are the subdirectories of `machines/`;
-the default is `default`.
+`scripts/install-zsh-plugins.sh`. Repository dependency installation performs a full
+system upgrade to avoid partial Arch upgrades; pacman asks for confirmation.
+Setup also installs the local vis fork package if missing (see below). If all
+packages, including the fork, are installed, no sudo/package transaction is needed.
+Profiles are the subdirectories of `machines/`; the default is `default`.
 
 `bash install.sh <profile>` remains configuration-only, with GNU Stow and jq required.
 Use it for offline reapplication or on other distributions after installing the
@@ -50,17 +51,39 @@ config/runtime installation sequence; Hyprcachy never executes dotfiles scripts 
 
 ## vis editor
 
-`setup.sh` builds a [patched vis with retained buffers](packages/vis/) using
-`scripts/install-vis.sh`. `~/.local/bin/vis` launches the private build;
-`/usr/bin/vis` remains untouched. Configuration stays in `.config/vis`.
+`setup.sh` ensures the vis fork package is installed using
+`scripts/install-vis.sh`. Normal PATH lookup runs `/usr/bin/vis`, owned by
+`vis-retained-terminal`; no dotfiles launcher is needed. Its PKGBUILD owns the library dependencies, Lua runtime,
+lexers and helpers; configuration stays in `.config/vis`.
 
-Splits behave normally. **Space → e** changes only the current split's file;
-buffers retain unsaved text and undo history even when no split displays them.
+The [fork source is public](https://github.com/JacksonDCollins/vis), but the binary
+package is not in a package repository. If the package is absent, setup uses a
+checkout beside dotfiles (`../vis`, normally `~/vis`). If that path is missing,
+it clones the `retained-terminal` branch and checks out the exact commit pinned
+in `scripts/install-vis.sh`, then builds/installs with makepkg. Existing paths
+are never overwritten, reset or pulled; invalid checkouts fail with a message.
+An installed package skips cloning and rebuilding. The package is not added to
+the ordinary repository package list. For an update, explicitly select/review
+the desired fork revision (fresh bootstrap clones are detached), then run
+`makepkg -fsi` there. Old private bundles remain on disk for running sessions
+but are no longer selected.
+
+**Space → e** opens nnn; **Space → t** opens a shell in a terminal buffer.
+**Ctrl-\\ then Ctrl-n** leaves terminal input without stopping the application;
+Normal mode can copy text or switch splits, and **i/a** resumes input.
+Terminal mappings live in `keymaps.lua`. PTY output and subprocess/LSP callbacks
+run on the normal editor event loop. Lua handles nnn's anonymous-pipe selection
+and restores the originating buffer on cancellation.
+This uses libvterm and requires rebuilding vis after updates. Terminal buffers
+retain the current screen, not scrollback. Ordinary buffers retain unsaved text
+and undo history even when no split displays them.
 `:bnext` / `:bprev` switch buffers, `:buffers` lists them, and `:bdelete`
 removes the current buffer (`!` discards its changes). **Ctrl-w j/k** switches
 splits. `:q` closes a split; closing the last split and `:qall` check all buffers,
-including hidden ones, for unsaved changes. See the package README for details,
-rebuilding and rollback.
+including hidden ones, for unsaved changes. See `FORK.md` in the separate vis
+repository for APIs and packaging details. Roll back using a previously built
+package through pacman, not the old private-bundle symlink. Uninstalling dotfiles
+removes editor configuration, not the installed package.
 
 ## nnn file manager
 
