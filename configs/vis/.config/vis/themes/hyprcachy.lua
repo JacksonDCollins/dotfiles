@@ -1,0 +1,1 @@
+dofile(os.getenv('HOME') .. '/.config/theme/generated/vis.generated.lua')

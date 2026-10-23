@@ -10,10 +10,8 @@ if ! pacman -Q vis-retained-terminal >/dev/null 2>&1; then
     fork="$repo/../vis"
     command -v makepkg >/dev/null || { echo 'Install the Arch base-devel toolchain first.' >&2; exit 1; }
     if [[ ! -e "$fork" && ! -L "$fork" ]]; then
-        revision=b1d5dcd58d2db02b803d07dc58659301d920193f
-        git clone --branch retained-terminal --single-branch --no-checkout -- \
+        git clone --branch retained-terminal --single-branch -- \
             https://github.com/JacksonDCollins/vis.git "$fork"
-        git -C "$fork" checkout --detach "$revision"
     fi
     [[ -f "$fork/PKGBUILD" && -f "$fork/vis-terminal.c" ]] || {
         echo "Expected the vis fork with PKGBUILD at $fork; existing paths are not replaced." >&2

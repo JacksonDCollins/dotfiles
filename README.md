@@ -59,12 +59,11 @@ lexers and helpers; configuration stays in `.config/vis`.
 The [fork source is public](https://github.com/JacksonDCollins/vis), but the binary
 package is not in a package repository. If the package is absent, setup uses a
 checkout beside dotfiles (`../vis`, normally `~/vis`). If that path is missing,
-it clones the `retained-terminal` branch and checks out the exact commit pinned
-in `scripts/install-vis.sh`, then builds/installs with makepkg. Existing paths
+it clones the latest `retained-terminal` branch, then builds/installs with makepkg. Existing paths
 are never overwritten, reset or pulled; invalid checkouts fail with a message.
 An installed package skips cloning and rebuilding. The package is not added to
 the ordinary repository package list. For an update, explicitly select/review
-the desired fork revision (fresh bootstrap clones are detached), then run
+the desired fork revision, then run
 `makepkg -fsi` there. Old private bundles remain on disk for running sessions
 but are no longer selected.
 
@@ -475,8 +474,8 @@ such as Foot's selection background. The wallpaper remains a separate image.
 Bash and jq; there are no app-specific renderers or additional template-engine
 dependencies. It preserves template formatting, including trailing newlines.
 Both `setup.sh` and direct `install.sh` runs generate files before Stow. No watcher
-or automatic app reload is added by the generator. Templates and generated outputs
-stay in Git; commit regenerated files alongside their source changes.
+or automatic app reload is added by the generator. Templates stay in Git;
+`generated/` outputs are ignored and recreated locally during installation.
 
 ```sh
 bash scripts/generate-theme.sh                       # generate for the default profile
@@ -508,6 +507,7 @@ The `configs/theme` Stow package installs these template/output pairs under
 | Editable template | Consumed output |
 | --- | --- |
 | `templates/nvim.template.lua` | `generated/nvim.generated.lua` |
+| `templates/vis.template.lua` | `generated/vis.generated.lua` |
 | `templates/foot.template.ini` | `generated/foot.generated.ini` |
 | `templates/fuzzel.template.ini` | `generated/fuzzel.generated.ini` |
 | `templates/tmux.template.conf` | `generated/tmux.generated.conf` |
@@ -551,6 +551,10 @@ App configs load `~/.config/theme/generated/` files, keeping appearance separate
 behavior and keybindings. When using Stow manually, generate first and re-Stow
 `theme` plus the affected app packages before restarting or reloading anything;
 existing individual links do not pick up new paths automatically.
+
+vis uses `themes/hyprcachy.lua` to load `generated/vis.generated.lua`. Its template
+maps the shared palette to syntax, selections, cursors, line numbers and status bars.
+After regenerating, `:set theme hyprcachy` reapplies it without restarting vis.
 
 Neovim uses our native `dotfiles` colorscheme without a theme plugin.
 `templates/nvim.template.lua` owns editor, syntax/Tree-sitter, LSP and plugin highlighting,

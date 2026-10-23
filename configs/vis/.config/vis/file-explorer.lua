@@ -37,9 +37,11 @@ local function open_explorer(startup)
     return ok
 end
 
-vis:map(vis.modes.NORMAL, keys.file_explorer.open, function()
-    open_explorer()
-end, 'Open file explorer')
+vis.events.subscribe(vis.events.WIN_OPEN, function()
+	vis:map(vis.modes.NORMAL, keys.file_explorer.open, function()
+	    open_explorer()
+	end, 'Open file explorer')
+end)
 
 vis.events.subscribe(vis.events.START, function()
     if os.getenv('VIS_NNN_START') == '1' and not open_explorer(true) then
