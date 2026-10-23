@@ -1,0 +1,15 @@
+[Unit]
+Description=Tailscale system tray
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+ConditionFileIsExecutable=/usr/bin/tailscale
+
+[Service]
+ExecStart=/usr/bin/tailscale systray
+Restart=on-failure
+RestartSec=2
+Slice=session.slice
+
+[Install]
+WantedBy=graphical-session.target

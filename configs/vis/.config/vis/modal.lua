@@ -7,9 +7,11 @@ local MODES = {
 	[vis.modes.REPLACE] = ' REPLACE ',
 	[vis.modes.VISUAL_LINE] = ' VISUAL_LINE ',
 	[vis.modes.OPERATOR_PENDING] = ' OPERATOR_PENDING ',
-	[vis.modes.TERMINAL] = " TERMINAL ",
 }
 
+if vis.modes.TERMINAL then
+	MODES[vis.modes.TERMINAL] = ' TERMINAL '
+end
 
 local STYLE_IDS = { UNFOCUSED = {} }
 for mode in pairs(MODES) do STYLE_IDS[mode] = {} end
