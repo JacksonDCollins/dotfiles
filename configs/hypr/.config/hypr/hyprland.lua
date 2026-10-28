@@ -38,7 +38,7 @@ dofile("/usr/share/hyprcachy/window-session/init.lua")({
 		-- firefox = "firefox.desktop",
 
 		-- Restore placement, but let autostart launch it:
-		vesktop = false,
+		-- vesktop = false,
 	},
 
 	-- Initial window classes to exclude:
