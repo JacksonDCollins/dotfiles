@@ -90,6 +90,8 @@ Scope {
                     theme: container.theme
                     anchors {
                         left: parent.left
+                        right: clockWidget.left
+                        rightMargin: container.theme.spacing.medium
                         verticalCenter: parent.verticalCenter
                     }
                     width: container.sideWidth //Math.min(contentWidth, container.sideWidth)
@@ -107,7 +109,9 @@ Scope {
                     id: clockWidget
                     theme: container.theme
                     compact: container.width < container.theme.bar.compactWidth
-                    anchors.centerIn: parent
+                    //anchors.centerIn: parent
+                    anchors.right: controlsStrip.left
+                    anchors.rightMargin: container.theme.spacing.medium
                 }
                 BarStrip {
                     id: controlsStrip
