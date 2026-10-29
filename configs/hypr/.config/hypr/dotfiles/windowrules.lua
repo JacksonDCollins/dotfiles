@@ -28,12 +28,12 @@ do
 		if not workspace or #hl.get_windows({ workspace = workspace, mapped = true, floating = false }) == 0 then
 			return "" -- Distinguish an empty workspace from a failed native capture (nil).
 		end
-		return hl.plugin.window_session.capture(workspace.id)
+		return hl.plugin.window_session.capture(workspace.addressable_name)
 	end
 	local function layout_before(window, origin, entering)
 		local native = hl.plugin and hl.plugin.window_session
 		if not native or type(native.capture) ~= "function" or type(native.restore) ~= "function" then return end
-		local id, layout = tostring(window.stable_id), layouts()[origin]
+		local id, layout = hyprcachy_window_session.stable_id(window), layouts()[origin]
 		if entering and window.floating then return end
 		if not entering and (not layout or not layout.away[id]) then return end
 		local tree = current_tree(origin)
@@ -53,17 +53,17 @@ do
 			if layout.tree then
 				local bindings = {}
 				for _, member in ipairs(hl.get_windows({ workspace = window.workspace, mapped = true, floating = false })) do
-					local id = tostring(member.stable_id)
+					local id = hyprcachy_window_session.stable_id(member)
 					bindings[id] = id
 				end
 				-- Native remapping collapses absent leaves; extra live leaves reject the restore.
-				local ok, err = hl.plugin.window_session.restore(window.workspace.id, layout.tree, bindings)
+				local ok, err = hl.plugin.window_session.restore(window.workspace.addressable_name, layout.tree, bindings)
 				if not ok then
 					layout.tree = nil
 					print("Fullscreen layout: " .. tostring(err) .. "; keeping normal placement")
 				end
 			end
-			layout.away[tostring(window.stable_id)] = nil
+			layout.away[hyprcachy_window_session.stable_id(window)] = nil
 		end
 		layout.expected = current_tree(origin)
 		if not layout.expected then layout.tree = nil end
@@ -84,8 +84,8 @@ do
 	end
 	local function suspended()
 		local session = hyprcachy_window_session
-		-- Require the controller's explicit idle signal; older controllers must be updated first.
-		return session and session.status ~= "disabled (opt-in)" and session.restoring ~= false
+		-- Wait for the plugin's startup config pass and explicit idle signal.
+		return not session or (session.status ~= "disabled (opt-in)" and session.restoring ~= false)
 	end
 	local function relocate(window)
 		if suspended() or not window.mapped or window.hidden or window.group or window.pinned
@@ -112,12 +112,12 @@ do
 			if #hl.get_windows({ workspace = window.workspace, mapped = true }) <= 1 then return end
 			local highest = 0
 			for _, workspace in ipairs(hl.get_workspaces()) do
-				if not workspace.special and not workspace.is_empty and workspace.id > highest then
+				if not workspace.special and not workspace.is_empty and workspace.id and workspace.id > highest then
 					highest = workspace.id
 				end
 			end
 			assert(highest < 4294967294, "No higher numbered workspace is available")
-			destination, monitor, origin = tostring(highest + 1), window.monitor.name, window.workspace.config_name
+			destination, monitor, origin = tostring(highest + 1), window.monitor.name, hyprcachy_window_session.workspace_name(window.workspace)
 			saved = prefix .. hex(origin) .. ":" .. hex(monitor)
 			assert(#saved <= 256 and #window.tags < 128, "Fullscreen return tag exceeds snapshot limits")
 			dispatch(hl.dsp.window.tag({ window = window, tag = "+" .. saved }))
@@ -151,7 +151,7 @@ do
 	end
 	hl.on("window.close", function(window)
 		for origin, layout in pairs(layouts()) do
-			layout.away[tostring(window.stable_id)] = nil
+			layout.away[hyprcachy_window_session.stable_id(window)] = nil
 			if not next(layout.away) then layouts()[origin] = nil end
 		end
 	end)
