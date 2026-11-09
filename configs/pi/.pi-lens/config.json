@@ -1,5 +1,8 @@
 {
 	"format": {
 		"mode": "immediate"
+	},
+	"lsp":{
+		"enabled": false
 	}
 }
