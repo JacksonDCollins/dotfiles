@@ -1,7 +1,8 @@
 {
   "mcpServers": {
     "context-mode": {
-      "command": "context-mode"
+      "command": "context-mode",
+      "args": ["server", "--agent", "pi"]
     },
     "chrome-devtools": {
       "command": "chrome-devtools-mcp"
