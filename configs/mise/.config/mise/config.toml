@@ -12,8 +12,8 @@ dart = { version = "3.13.7", checksum_url = "https://storage.googleapis.com/dart
 "aqua:tree-sitter/tree-sitter" = "0.27.2"
 
 # Pi coding agent and its local MCP server executables.
-pi = "1.5.0"
-"npm:context-mode" = "2.1.5"
+pi = "1.5.1"
+"npm:context-mode" = "2.1.7"
 "npm:chrome-devtools-mcp" = "1.12.0"
 
 # Predictive Zsh suggestions; shell integration is loaded through Zinit.
